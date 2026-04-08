@@ -2,6 +2,8 @@ import Image from "next/image";
 import Header from "./Components/Header/page";
 import Botao from "./Components/Botao/page";
 import InfosHome from "./Components/InfosHome/page";
+import Footer from "./Components/Footer/page";
+import CardsHome from "./Widgets/CardsHome";
 
 export default function Home() {
   return (
@@ -22,8 +24,10 @@ export default function Home() {
         </div>
 
         <InfosHome />
-
+        <CardsHome />
+        <br /><br />
       </div>
+      <Footer />
     </main>
   );
 }
