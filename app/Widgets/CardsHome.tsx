@@ -12,7 +12,13 @@ export default function CardsHome() {
     ]
     return (
         <>
-            <section className="flex flex-col sm:flex-row sm:justify-center sm:gap-x-8 mt-20 px-4 sm:h-75 gap-y-8 items-center">
+            <div className="text-center mt-15 px-3">
+                <p className="text-[#FF7A00] font-[Rajdhani] text-[15px]">
+                    POR QUE COMPETIR AQUI?
+                </p>
+                <h3 className="text-white text-[24px]">Tudo o que você precisa para vencer</h3>
+            </div>
+            <section className="flex flex-col sm:flex-row sm:justify-center sm:gap-x-8 mt-10 px-4 sm:h-75 gap-y-8 items-center">
                 {propsCards.map((item, index) => {
                     return (
                         <CardHome key={index} tituloCard={item.titulo} descricaoCard={item.descricao}

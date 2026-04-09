@@ -14,8 +14,8 @@ export default function CardHome(props: propsCardHome) {
                     </path>
                 </svg>
             </div>
-            <h4 className="text-xl sm:text-[13px] text-white">{props.tituloCard}</h4>
-            <p id="descCardHome" className="text-[#5a5a5a] text-[18px] sm:text-[14px]">
+            <h4 className="text-xl sm:text-[13px] md:text-[15px] text-white">{props.tituloCard}</h4>
+            <p id="descCardHome" className="text-[#8a8a8a] text-[18px] sm:text-[14px]">
                 {props.descricaoCard}
             </p>
 

@@ -27,7 +27,10 @@ export default function Home() {
         <CardsHome />
         <br /><br />
       </div>
-      <Footer />
+      <div className="bottom-0 mt-280 sm:mt-100">
+          <Footer />
+      </div>
+      
     </main>
   );
 }
