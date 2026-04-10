@@ -1,28 +1,35 @@
-"use client" // Necessário no Next.js para usar o useState
+"use client"
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import AuthModal from "../Modal/page";
 
 export default function Header() {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <header className="w-full bg-[#3117066c] h-13 sm:h-15 md:h-18 fixed px-5 md:px-10 flex justify-between items-center z-50 backdrop-blur-sm">
-            <div className="flex h-full items-center">
-                <Image src={"/images/imgLogo2.png"} alt={"Logo"} width={65} height={65} className="h-[80%] w-fit" />
+        <header className="w-full bg-[#3117066c] h-11 sm:h-13 md:h-15 fixed px-5 md:px-10 flex justify-between items-center z-50 backdrop-blur-sm">
+            <div className="flex h-full items-center text-xl">
+                <Link href={"/"}>
+                    <span className="text-orange-400">Arena</span>
+                    <span className="text-[#c5c5c5]">Rift</span>
+                </Link>
+                
             </div>
 
             {/* Desktop Menu */}
             <div id="botoesHeader" className="hidden sm:flex gap-x-5 sm:gap-x-6 md:gap-x-8 items-center">
                 <Link href={""}>
-                    <p className="text-gray-300 text-[0.6rem] sm:text-[0.65rem] md:text-[0.75rem] hover:text-[#f57c01] border-b-2 border-transparent hover:border-b-[#f57c01] transition-colors">
+                    <p className="text-gray-300 text-[0.6rem] sm:text-[0.65rem] md:text-[0.7rem] hover:text-[#f57c01] border-b-2 border-transparent hover:border-b-[#f57c01] transition-colors">
                         CAMPEONATO
                     </p>
                 </Link>
                 <Link href={""}>
                     <button
                         className="rounded-lg border-2 border-[#f57c01] text-[#f57c01]
-                    text-[0.5rem] sm:text-[0.6rem] md:text-[0.8rem] p-2 sm:p-3 md:p-4 whitespace-nowrap hover:bg-[#f57c01] hover:text-black transition-all hover:cursor-pointer">
+                    text-[0.5rem] sm:text-[0.6rem] md:text-[0.7rem] p-2 sm:p-3 md:p-4 whitespace-nowrap hover:bg-[#f57c01] hover:text-black transition-all hover:cursor-pointer"
+                    onClick={() => setIsOpen(true)}>
+    
                         ENTRAR / INSCREVER-SE
                     </button>
                 </Link>
@@ -49,6 +56,8 @@ export default function Header() {
                     </button>
                 </Link>
             </div>
+
+            <AuthModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
         </header>
     )
 }

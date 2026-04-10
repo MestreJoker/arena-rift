@@ -12,8 +12,8 @@ export default function CardsHome() {
     ]
     return (
         <>
-            <div className="text-center mt-15 px-3">
-                <p className="text-[#FF7A00] font-[Rajdhani] text-[15px]">
+            <div className="text-center -mt-1 px-3">
+                <p className="text-[#FF7A00] font-[Rajdhani] text-[15px] font-bold">
                     POR QUE COMPETIR AQUI?
                 </p>
                 <h3 className="text-white text-[24px]">Tudo o que você precisa para vencer</h3>
