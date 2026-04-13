@@ -40,7 +40,7 @@ export default function Header() {
 
                 {/* Desktop Menu */}
                 <div id="botoesHeader" className="hidden sm:flex gap-x-5 sm:gap-x-6 md:gap-x-8 items-center">
-                    <Link href={""}>
+                    <Link href={"/Pages/Campeonatos"}>
                         <p className="text-gray-300 text-[0.6rem] sm:text-[0.65rem] md:text-[0.7rem] hover:text-[#f57c01] border-b-2 border-transparent hover:border-b-[#f57c01] transition-colors">
                             CAMPEONATO
                         </p>

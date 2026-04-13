@@ -12,7 +12,7 @@ export default function CardsHome() {
     ]
     return (
         <>
-            <div className="text-center -mt-1 px-3">
+            <div className="text-center px-3">
                 <p className="text-[#FF7A00] font-[Rajdhani] text-[15px] font-bold">
                     POR QUE COMPETIR AQUI?
                 </p>

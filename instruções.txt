@@ -1,0 +1,259 @@
+# 📌 CONTEXTO COMPLETO DO PROJETO — ArenaRift
+
+## 🧠 VISÃO GERAL DO PROJETO
+
+O projeto é um site chamado **ArenaRift**, focado em campeonatos competitivos de *Wild Rift*.
+
+A ideia principal é:
+
+* Permitir que jogadores participem de campeonatos online
+* Criar uma experiência competitiva com progressão (fases, ranking, etc.)
+* Centralizar tudo em uma plataforma simples e visualmente atrativa
+
+O diferencial do projeto é:
+
+👉 Login obrigatório com Discord
+👉 Foco total em experiência gamer competitiva
+👉 Interface moderna (dark, neon, minimalista)
+
+---
+
+## 🎯 OBJETIVO DO MVP (VERSÃO INICIAL)
+
+Criar uma versão funcional mínima onde o usuário pode:
+
+* Entrar com Discord
+* Visualizar campeonatos
+* Se inscrever em campeonatos
+* Ter um perfil básico
+
+Sem funcionalidades avançadas inicialmente.
+
+---
+
+## 🧑‍💻 STACK UTILIZADA
+
+* Front-end: React + Next.js
+* Estilização: Tailwind CSS
+* Linguagem: TypeScript (nível básico)
+* Componentização: baseada em componentes reutilizáveis
+* API: ainda não implementada
+* Autenticação: planejada com Discord OAuth (provavelmente NextAuth)
+
+---
+
+## 🎨 IDENTIDADE VISUAL
+
+* Tema escuro (quase preto)
+* Cor principal: laranja (#f57c01 / #FF7A00)
+* Estilo gamer competitivo
+* Uso de:
+
+  * glow effects
+  * gradients
+  * hover animations
+  * blur (backdrop)
+
+---
+
+## 📱 TELAS EXISTENTES
+
+### 🏠 Home (principal)
+
+Contém:
+
+* Header fixo com transparência e blur
+* Hero section com:
+
+  * imagem de fundo (Wild Rift)
+  * degradê escuro
+  * título principal animado
+  * subtítulo
+  * botão "Participar agora"
+* Seção de informações (estatísticas)
+* Seção de cards explicativos
+* Footer
+
+---
+
+### 📦 Componentes criados
+
+#### Header
+
+* Responsivo
+* Logo dinâmica (muda ao scroll)
+* Menu desktop + mobile
+* Botão de login/registro
+* Abre modal de autenticação
+
+---
+
+#### AuthModal
+
+* Modal central com overlay escuro + blur
+* Botão "Entrar com Discord"
+* Lista de benefícios
+* Animações suaves
+* Fechamento com:
+
+  * clique fora
+  * ESC
+
+---
+
+#### Botão (Botao)
+
+* Componente reutilizável
+* Estilizado com hover e animação
+
+---
+
+#### CardsHome
+
+* Lista de cards explicando o sistema:
+
+  * 1x1 competitivo
+  * avanço por fases
+  * premiação
+
+---
+
+#### CardHome
+
+* Card com:
+
+  * hover glow
+  * bordas animadas
+  * ícone SVG
+  * título e descrição
+
+---
+
+#### InfosHome
+
+* Estatísticas (ex: jogadores ativos)
+* Animação de entrada
+* Responsivo
+
+---
+
+## ⚠️ PROBLEMAS ATUAIS
+
+1. Botão "Participar agora" não executa ação
+2. Estado do modal está separado (não global)
+3. Login com Discord ainda não implementado
+4. Sistema ainda é apenas front-end (sem backend)
+5. Dados (cards, infos) são estáticos
+
+---
+
+## 🧠 FUNCIONALIDADE PRINCIPAL (CORE)
+
+O fluxo principal esperado é:
+
+1. Usuário entra no site
+2. Clica em "Participar agora"
+3. Abre modal
+4. Clica em "Entrar com Discord"
+5. Faz login via Discord
+6. Retorna autenticado
+7. Pode se inscrever em campeonatos
+
+---
+
+## 🔐 AUTENTICAÇÃO (PLANEJADO)
+
+* Usar OAuth do Discord
+* Implementar com NextAuth
+* Criar sessão com cookies
+* Armazenar dados do usuário (id, nome, avatar)
+
+---
+
+## 📈 FUNCIONALIDADES FUTURAS
+
+* Página de campeonatos
+* Sistema de inscrição
+* Sistema de ranking
+* Histórico de partidas
+* Perfil do usuário
+* Integração com banco de dados
+* Painel administrativo
+
+---
+
+## 🧩 ARQUITETURA ATUAL
+
+* Separação por:
+
+  * Components
+  * Widgets
+* Uso de:
+
+  * useState
+  * useEffect
+* Componentização bem estruturada
+
+---
+
+## 🧠 NÍVEL DO DESENVOLVEDOR
+
+O desenvolvedor:
+
+* Tem bom domínio de front-end
+* Sabe:
+
+  * HTML semântico
+  * CSS avançado (flex, grid, responsividade)
+  * JS básico/intermediário
+  * React (hooks principais)
+  * consumo de API
+* Ainda está evoluindo em:
+
+  * backend
+  * autenticação
+  * arquitetura de estado
+
+---
+
+## 🚧 PRÓXIMOS PASSOS
+
+1. Conectar botão ao modal
+2. Centralizar estado do modal
+3. Implementar login com Discord (NextAuth)
+4. Criar estado global de usuário (session)
+5. Alterar UI para usuário logado
+6. Criar primeira página protegida (ex: inscrição)
+7. Integrar banco de dados futuramente
+
+---
+
+## 💡 FILOSOFIA DO PROJETO
+
+* Não reinventar UX
+* Usar padrões conhecidos
+* Focar em experiência fluida
+* Priorizar simplicidade
+* Evoluir gradualmente
+
+---
+
+## 🔥 RESUMO FINAL
+
+ArenaRift é uma plataforma web para campeonatos de Wild Rift, com login via Discord, focada em experiência competitiva e interface moderna. Atualmente está com front-end bem desenvolvido, faltando integração com autenticação e backend para se tornar funcional.
+
+---
+
+## 📌 IMPORTANTE (PARA IA)
+
+Se este texto for enviado em outro chat:
+
+👉 Considere que:
+
+* O projeto está em fase inicial (front-end avançado)
+* O foco agora é autenticação + lógica
+* O usuário quer orientação prática passo a passo
+* Evitar explicações genéricas
+* Ser direto, técnico e estratégico
+
+---

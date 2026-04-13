@@ -1,4 +1,5 @@
 'use client'
+import Footer from "@/app/Components/Footer/page";
 import { useState, useEffect } from "react";
 
 const styles = `
@@ -645,6 +646,8 @@ export default function ArenaRift() {
             </div>
           </div>
         </footer>
+
+        <Footer />
 
       </div>
     </>
