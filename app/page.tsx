@@ -6,101 +6,86 @@ import InfosHome from "./Components/InfosHome/page";
 import Footer from "./Components/Footer/page";
 import CardsHome from "./Widgets/CardsHome";
 import AuthModal from "./Components/Modal/page";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
+  
   return (
-    <main>
+    <main className="min-h-screen flex flex-col">
       <Header />
-      <section id="content" className="max-w-[3480px] ml-auto mr-auto">
+
+      <section id="content" className="w-full max-w-[3840px] mx-auto flex-1 relative">
         <div
           id="topo"
-          className="relative bg-[url('/images/imageHome5.jpg')] bg-cover bg-center h-screen max-h-[900px] pt-25
-             before:absolute before:inset-0 before:bg-gradient-to-t before:from-black before:via-black/70 before:to-transparent
-             before:pointer-events-none"
+          className="relative bg-[url('/images/imageHome5.jpg')] bg-cover bg-center 
+                     min-h-[500px] sm:min-h-[600px] md:h-screen md:max-h-[900px] 
+                     pt-16 sm:pt-20 md:pt-25
+                     before:absolute before:inset-0 before:bg-gradient-to-t 
+                     before:from-black before:via-black/70 before:to-transparent
+                     before:pointer-events-none"
         >
+          {/* Degradê nas laterais para telas > 3840px */}
+          <div className="hidden min-[3840px]:block absolute inset-0 pointer-events-none z-[5]">
+            {/* Degradê esquerdo */}
+            <div className="absolute top-0 left-0 w-[300px] h-full 
+                           bg-gradient-to-r from-black via-black/80 to-transparent"></div>
+            {/* Degradê direito */}
+            <div className="absolute top-0 right-0 w-[300px] h-full 
+                           bg-gradient-to-l from-black via-black/80 to-transparent"></div>
+          </div>
+
           {/* Conteúdo com z-index maior para ficar acima do degradê */}
-          <div className="relative z-10">
-            <h1 id="tituloPrincipal" className="text-white text-[2rem] md:text-[3rem] pt-15 text-center leading-7 sm:leading-10 md:leading-15">
-              Faça parte de campeonatos <br /> de <span
-                className="text-orange-400 font-bold">
-                wild rift
+          <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
+            <h1
+              id="tituloPrincipal"
+              className={`text-white text-4xl lg:text-5xl 
+             xl:text-6xl 2xl:text-7xl pt-8 sm:pt-6 md:-mt-10
+             text-center leading-tight sm:leading-snug md:leading-normal
+             transition-all duration-700 ease-out
+             ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+            >
+              Faça parte de campeonatos <br className="hidden sm:block" /> de{' '}
+              <span className="text-orange-400 font-bold">
+                wild<span className="px-0.5 text-transparent">.</span>rift
               </span>
             </h1>
-            <p id="subtituloPrincipal" className="text-center sm:text-[0.4rem] md:text-[0.9rem] text-[white] mt-3 max-w-[70%] ml-auto mr-auto">
+
+            <p
+              id="subtituloPrincipal"
+              className={`text-center text-xs sm:text-sm md:text-[0.7rem] text-white 
+             mt-3 sm:mt-4 w-full max-w-[90%] sm:max-w-[80%] md:max-w-[70%] 
+             mx-auto px-4
+             transition-all duration-700 ease-out delay-150
+             ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+            >
               TESTE SUAS HABILIDADES E AVANÇE ATÉ O FINAL
             </p>
-            <div className="flex justify-center mt-10">
-              <Botao texto={"PARTICIPAR AGORA"}></Botao>
+
+            <div className={`flex justify-center mt-6 sm:mt-8 md:mt-10
+                            transition-all duration-700 ease-out delay-300
+                            ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+              <Botao texto={"PARTICIPAR AGORA"} />
             </div>
 
             <InfosHome />
           </div>
         </div>
+
         <CardsHome />
       </section>
 
-      <div id="bgFooter" className="bottom-0 mt-220 sm:mt-100">
+      <div id="bgFooter" className="w-full mt-6">
         <Footer />
       </div>
-
-      <style>
-        {`
-          @media(max-width: 585px){
-            #bgFooter{
-              margin-top: 930px
-            }
-          }
-
-          @media(max-width: 555px){
-            #bgFooter{
-              margin-top: 990px
-            }
-          }
-
-          @media(max-width: 535px){
-            #bgFooter{
-              margin-top: 1030px
-            }
-          }
-
-          @media(max-width: 528px){
-            #bgFooter{
-              margin-top: 1050px
-            }
-          }
-
-          @media(max-width: 493px){
-            #bgFooter{
-              margin-top: 1110px
-            }
-          }
-
-          @media(max-width: 415px){
-            #bgFooter{
-              margin-top: 1140px
-            }
-          }
-
-          @media(max-width: 401px){
-            #bgFooter{
-              margin-top: 1170px
-            }
-          }
-
-          @media(max-width: 399px){
-            #bgFooter{
-              margin-top: 1250px
-            }
-          }
-
-          @media(max-width: 392px){
-            #bgFooter{
-              margin-top: 1270px
-            }
-          }
-        `}
-      </style>
     </main>
   );
 }
