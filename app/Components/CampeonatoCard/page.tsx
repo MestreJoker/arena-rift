@@ -42,7 +42,7 @@ export default function CampeonatoCard(props: CampeonatoProps) {
         <p className="text-gray-400 text-sm">Prêmio: {props.premio}</p>
 
         <button className="mt-4 w-full bg-[#f57c01] text-black font-bold py-2 rounded-md
-                           hover:bg-orange-500 hover:text-white transition-all">
+                           hover:bg-orange-500 hover:text-white transition-all hover:cursor-pointer">
           PARTICIPAR
         </button>
       </div>
