@@ -33,14 +33,14 @@ export default function ListaCampeonatos() {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
       {campeonatos.map((item, index) => (
         <CampeonatoCard
-          key={index}
-          titulo={item.titulo}
-          tipo={item.tipo}
-          status={item.status}
-          jogadores={item.jogadores}
-          premio={item.premio}
-          imagem={item.imagem}
-        />
+              key={index}
+              titulo={item.titulo}
+              tipo={item.tipo}
+              status={item.status}
+              jogadores={item.jogadores}
+              premio={item.premio}
+              imagem={item.imagem}
+              id={index}        />
       ))}
     </div>
   );
