@@ -1,16 +1,16 @@
 "use client"
 import { useState, useEffect } from "react"
-import Image from "next/image"
 import Link from "next/link"
-import AuthModal from "../Modal/page";
+import AuthModal from "../Modal/page"
 
 export default function Header() {
     const [isOpen, setIsOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => {
-            setIsScrolled(window.scrollY > 50);
+            setIsScrolled(window.scrollY > 20);
         };
 
         window.addEventListener("scroll", handleScroll);
@@ -18,67 +18,73 @@ export default function Header() {
     }, []);
 
     return (
-        <header className="w-full bg-[#3117066c] h-11 sm:h-13 md:h-15 fixed px-5 md:px-10 z-50 backdrop-blur-sm ml-auto flex justify-center">
-            <div className="flex justify-between items-center w-full max-w-830">
-                <div className="flex h-full items-center text-xl">
-                    <Link href={"/"} className="relative">
-                        {/* Versão completa */}
-                        <div className={`transition-all duration-500 absolute inset-0 flex items-center
-                                        ${isScrolled ? 'opacity-0 invisible' : 'opacity-100 visible'}`}>
-                            <span className="text-orange-400">Arena</span>
-                            <span className="text-[#eee]">Rift</span>
-                        </div>
+        <>
+            <header 
+                className={`w-full h-16 sm:h-20 fixed px-5 md:px-10 z-50 transition-all duration-300 flex justify-center items-center
+                ${isScrolled 
+                    ? "bg-[#0a0a0a] shadow-2xl border-white/5 backdrop-blur-md" 
+                    : "bg-transparent"
+                }`}
+            >
+                <div className="flex justify-between items-center w-full max-w-7xl">
+                    
+                    {/* LOGO */}
+                    <div className="flex h-full items-center">
+                        <Link href={"/"} className="font-bold tracking-tighter flex items-center"
+                              style={{ fontSize: 'clamp(1.2rem, 3.5vw, 1.5rem)' }}>
+                            <span className="text-[#cd6931]">ARENA</span>
+                            <span className="text-white">RIFT</span>
+                        </Link>
+                    </div>
+
+                    {/* Desktop Menu */}
+                    <nav className="hidden sm:flex items-center gap-8">
+                        <Link href={"/Pages/Campeonatos"}>
+                            <p className="text-gray-300 font-medium hover:text-[#cd6931] transition-colors uppercase tracking-widest"
+                               style={{ fontSize: 'clamp(0.6rem, 1.2vw, 0.8rem)' }}>
+                                Campeonatos
+                            </p>
+                        </Link>
                         
-                        {/* Versão reduzida "AR" */}
-                        <div className={`transition-all duration-500 flex items-center
-                                        ${isScrolled ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
-                            <span className="text-orange-400">A</span>
-                            <span className="text-[#eee]">R</span>
-                        </div>
-                    </Link>
-                </div>
-
-                {/* Desktop Menu */}
-                <div id="botoesHeader" className="hidden sm:flex gap-x-5 sm:gap-x-6 md:gap-x-8 items-center">
-                    <Link href={"/Pages/Campeonatos"}>
-                        <p className="text-gray-300 text-[0.6rem] sm:text-[0.65rem] md:text-[0.7rem] hover:text-[#f57c01] border-b-2 border-transparent hover:border-b-[#f57c01] transition-colors">
-                            CAMPEONATO
-                        </p>
-                    </Link>
-                    <Link href={""}>
-                        <button
-                            className="rounded-lg border-2 border-[#f57c01] text-[#f57c01]
-                        text-[0.5rem] sm:text-[0.6rem] md:text-[0.7rem] p-2 sm:p-3 md:p-4 whitespace-nowrap hover:bg-[#f57c01] hover:text-black transition-all hover:cursor-pointer"
-                            onClick={() => setIsOpen(true)}>
+                        <button 
+                            onClick={() => setIsAuthModalOpen(true)}
+                            className="rounded-lg border border-[#cd6931]/50 text-[#cd6931] font-bold p-2.5 px-6 hover:bg-[#cd6931] hover:text-white transition-all duration-300 shadow-lg shadow-[#cd6931]/10"
+                            style={{ fontSize: 'clamp(0.55rem, 1vw, 0.75rem)' }}
+                        >
                             ENTRAR / INSCREVER-SE
                         </button>
-                    </Link>
+                    </nav>
+
+                    {/* Hamburguer Mobile */}
+                    <button
+                        className="sm:hidden text-white flex flex-col gap-1.5 z-[60] p-2"
+                        onClick={() => setIsOpen(!isOpen)}
+                    >
+                        <div className={`w-6 h-0.5 bg-current transition-all duration-300 ${isOpen ? "rotate-45 translate-y-2 text-[#cd6931]" : ""}`}></div>
+                        <div className={`w-6 h-0.5 bg-current transition-all duration-300 ${isOpen ? "opacity-0" : ""}`}></div>
+                        <div className={`w-6 h-0.5 bg-current transition-all duration-300 ${isOpen ? "-rotate-45 -translate-y-2 text-[#cd6931]" : ""}`}></div>
+                    </button>
                 </div>
 
-                {/* Botão Sanduíche (Mobile) */}
-                <button 
-                    className="sm:hidden text-white flex flex-col gap-1.5 z-50"
-                    onClick={() => setIsOpen(!isOpen)}
-                >
-                    <div className={`w-6 h-0.5 bg-current transition-all ${isOpen ? "rotate-45 translate-y-2" : ""}`}></div>
-                    <div className={`w-6 h-0.5 bg-current transition-all ${isOpen ? "opacity-0" : ""}`}></div>
-                    <div className={`w-6 h-0.5 bg-current transition-all ${isOpen ? "-rotate-45 -translate-y-2" : ""}`}></div>
-                </button>
-
-                {/* Menu Mobile Dropdown */}
-                <div className={`absolute top-full left-0 w-full bg-[#311706f0] flex flex-col items-center gap-6 py-10 transition-all duration-300 sm:hidden ${isOpen ? "opacity-100 visible" : "opacity-0 invisible"}`}>
-                    <Link href={""} onClick={() => setIsOpen(false)}>
-                        <p className="text-gray-300 text-sm hover:text-[#f57c01]">CAMPEONATO</p>
+                {/* Menu Mobile Sidebar - Ocupa exatamente 1/3 da tela */}
+                <div className={`fixed top-0 right-0 w-[33.33vw] h-screen bg-[#0a0a0a] flex flex-col items-center pt-32 gap-10 transition-transform duration-500 ease-in-out border-l border-white/10 sm:hidden z-50 ${isOpen ? "translate-x-0" : "translate-x-full"}`}>
+                    <Link href={"/Pages/Campeonatos"} onClick={() => setIsOpen(false)}>
+                        <p className="text-white text-[10px] font-bold hover:text-[#cd6931] tracking-tighter text-center px-2">CAMPEONATOS</p>
                     </Link>
-                    <Link href={""} onClick={() => setIsOpen(false)}>
-                        <button className="rounded-lg border-2 border-[#f57c01] text-[#f57c01] text-xs p-3 px-6 hover:bg-[#f57c01] hover:text-black">
-                            ENTRAR / INSCREVER-SE
-                        </button>
-                    </Link>
+                    <button 
+                        onClick={() => {
+                            setIsOpen(false);
+                            setIsAuthModalOpen(true);
+                        }}
+                        className="w-[80%] rounded-md border border-[#cd6931] text-[#cd6931] text-[8px] font-bold py-3 hover:bg-[#cd6931] hover:text-white transition-all"
+                    >
+                        ENTRAR
+                    </button>
                 </div>
+            </header>
 
-                <AuthModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
-            </div>
-        </header>
+            {/* Modal de Autenticação */}
+            <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+        </>
     )
 }

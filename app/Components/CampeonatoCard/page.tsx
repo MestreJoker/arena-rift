@@ -1,85 +1,59 @@
-'use client'
-
+"use client"
 import Link from "next/link";
 
+// Corrigindo a interface: id deve ser string para bater com a rota dinâmica [id]
 interface CampeonatoProps {
-  id: number;
-  titulo: string;
-  tipo: string;
-  status: string;
-  jogadores: string;
-  premio: string;
-  imagem: string;
+    id: string; 
+    titulo: string;
+    tipo: string;
+    status: string;
+    jogadores: string; 
+    premio: string;    
+    imagem: string;
 }
 
-export default function CampeonatoCard(props: CampeonatoProps) {
-  return (
-    <Link href={`/Pages/Campeonatos/${props.id}`}>
+export default function CampeonatoCard({ id, titulo, tipo, status, jogadores, premio, imagem }: CampeonatoProps) {
+    return (
+        <Link href={`/Pages/Campeonatos/${id}`}>
+            <div className="group bg-[#141414] border border-white/5 rounded-xl overflow-hidden hover:border-[#cd6931]/50 transition-all duration-300 flex flex-col h-full">
+                {/* Imagem com Altura Fixa e Centralizada */}
+                <div className="relative h-44 overflow-hidden">
+                    <img 
+                        src={imagem} 
+                        alt={titulo} 
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                    />
+                    <div className="absolute top-3 right-3">
+                        <span className={`px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest ${
+                            status === 'Aberto' ? 'bg-green-500 text-black' : 'bg-[#cd6931] text-white'
+                        }`}>
+                            {status}
+                        </span>
+                    </div>
+                </div>
 
-      <div className="group bg-[#181818] rounded-lg overflow-hidden 
-                      border border-transparent hover:border-[#f57c01]/40 
-                      transition-all duration-300 hover:scale-[1.02] cursor-pointer">
+                {/* Conteúdo do Card */}
+                <div className="p-5 flex flex-col flex-1">
+                    <p className="text-[#cd6931] text-[10px] font-bold uppercase tracking-[0.2em] mb-1">
+                        {tipo} • WILD RIFT
+                    </p>
+                    <h3 className="text-white text-lg font-bold leading-tight mb-4 group-hover:text-[#cd6931] transition-colors line-clamp-2">
+                        {titulo}
+                    </h3>
 
-        {/* Imagem */}
-        <div className="relative h-40 w-full overflow-hidden">
-
-          {/* Gradiente */}
-          <div className="absolute inset-0 bg-gradient-to-t 
-                          from-black via-black/60 to-transparent z-10"></div>
-
-          {/* Imagem */}
-          <img
-            src={props.imagem}
-            alt={props.titulo}
-            className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-          />
-
-          {/* Badge */}
-          <span
-            className={`absolute top-2 left-2 z-20 text-xs px-3 py-1 rounded-full font-bold
-              ${props.status === 'aberto'
-                ? 'bg-green-500'
-                : 'bg-orange-500'
-              }`}
-          >
-            {props.status.toUpperCase()}
-          </span>
-        </div>
-
-        {/* Conteúdo */}
-        <div className="p-5 flex flex-col gap-2">
-
-          <h3 className="text-white font-bold text-lg group-hover:text-orange-400 transition">
-            {props.titulo}
-          </h3>
-
-          <p className="text-gray-400 text-sm">
-            Tipo: <span className="text-white">{props.tipo}</span>
-          </p>
-
-          <p className="text-gray-400 text-sm">
-            Jogadores: <span className="text-white">{props.jogadores}</span>
-          </p>
-
-          <p className="text-gray-400 text-sm">
-            Prêmio: <span className="text-white">{props.premio}</span>
-          </p>
-
-          {/* Botão */}
-          <button
-            onClick={(e) => {
-              e.preventDefault(); // evita ir pra página ao clicar no botão
-              alert("Você clicou em participar!");
-            }}
-            className="mt-4 w-full bg-[#f57c01] text-black font-bold py-2 rounded-md
-                       hover:bg-orange-500 hover:text-white transition-all"
-          >
-            PARTICIPAR
-          </button>
-
-        </div>
-      </div>
-
-    </Link>
-  );
+                    {/* Rodapé do Card - Alinhado à base */}
+                    <div className="mt-auto flex justify-between items-center pt-4 border-t border-white/5">
+                        <div className="flex flex-col">
+                            <span className="text-gray-500 text-[9px] uppercase font-bold tracking-tighter">Jogadores</span>
+                            <span className="text-white text-sm font-bold">{jogadores}</span>
+                        </div>
+                        <div className="flex flex-col items-end">
+                            <span className="text-gray-500 text-[9px] uppercase font-bold tracking-tighter">Premiação</span>
+                            <span className="text-[#cd6931] text-sm font-black">{premio}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Link>
+    );
 }

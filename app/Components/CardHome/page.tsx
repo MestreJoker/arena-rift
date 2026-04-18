@@ -11,7 +11,7 @@ export default function CardHome(props: propsCardHome) {
             w-[96%] sm:max-w-75.75 rounded-lg bg-[#181818] p-9 flex flex-col gap-5 
             hover:scale-102 transition-all duration-300 h-full md:max-h-65
             relative overflow-hidden
-            border border-transparent hover:border-t-orange-500/40
+            border border-transparent hover:border-orange-500
             cursor-pointer
         ">
             {/* Borda superior brilhante */}

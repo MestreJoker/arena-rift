@@ -1,3 +1,5 @@
+1° Relatório
+--------------------
 # 📌 CONTEXTO COMPLETO DO PROJETO — ArenaRift
 
 ## 🧠 VISÃO GERAL DO PROJETO
@@ -257,3 +259,176 @@ Se este texto for enviado em outro chat:
 * Ser direto, técnico e estratégico
 
 ---
+2° Relatório
+-----------------
+🧠 VISÃO GERAL
+
+O projeto consiste em uma plataforma web focada em campeonatos competitivos (inicialmente de Wild Rift), onde usuários podem:
+
+visualizar campeonatos
+participar de torneios
+competir por prêmios
+acessar rankings e histórico
+
+O login será feito via Discord (sem cadastro tradicional), facilitando entrada e engajamento.
+
+🎯 OBJETIVO PRINCIPAL
+
+Criar uma plataforma simples, funcional e escalável para:
+
+organizar campeonatos online
+atrair jogadores competitivos
+gerar renda através de inscrições e/ou patrocínio
+🧱 ESTADO ATUAL DO PROJETO
+✔ Frontend (em andamento)
+
+Você já tem:
+
+Página inicial (listagem de campeonatos)
+Página de detalhes de campeonato
+Modal de login com Discord (UI pronta)
+Estrutura com Next.js
+Layout organizado
+Uso de estado global (UserContext)
+✔ Sistema de login (parcial)
+
+Atualmente:
+
+Login simulado via modal
+Estrutura pronta para login real
+Integração com Discord ainda NÃO feita
+⚠ Backend
+
+Ainda não existe.
+
+Faltam:
+
+banco de dados
+API
+autenticação real
+sistema de inscrições
+💡 IDEIA DE ESCALA (IMPORTANTE)
+
+Você sugeriu algo MUITO bom:
+
+reutilizar o mesmo layout para vários jogos no mesmo domínio
+
+Exemplo:
+
+/wildrift
+/valorant
+/csgo
+/freefire
+📊 ANÁLISE REALISTA DISSO
+✔ Ponto positivo (muito forte)
+reaproveitamento de código
+baixo custo
+crescimento rápido
+SEO melhor distribuído
+⚠ Risco real
+
+Se fizer mal feito:
+
+vira site genérico
+sem identidade
+difícil crescer comunidade real
+✔ Estratégia correta
+começar com 1 jogo (Wild Rift)
+validar o modelo
+depois expandir
+
+👉 Isso você está fazendo certo
+
+💰 MONETIZAÇÃO (REALISTA)
+Fase inicial (0–3 meses)
+
+Provável:
+
+R$0 a R$200/mês
+
+Motivo:
+
+pouca base de usuários
+confiança baixa
+sem marca forte ainda
+Fase intermediária (3–6 meses)
+
+Possível:
+
+R$300 a R$1500/mês
+
+Se tiver:
+
+campeonatos ativos
+comunidade no Discord
+engajamento
+Fase avançada (6–12 meses)
+
+Possível:
+
+R$2.000 a R$8.000+/mês
+
+Se tiver:
+
+múltiplos jogos
+patrocinadores
+campeonatos frequentes
+⚠ VERDADE IMPORTANTE
+
+O sucesso NÃO depende do código.
+
+Depende de:
+
+comunidade
+consistência
+execução
+divulgação
+🧩 O QUE FALTA FAZER (ORDEM CORRETA)
+🔥 PRIORIDADE 1
+Header com estado de login
+Botão "Participar" funcional
+Página de perfil
+🔥 PRIORIDADE 2
+Login real com Discord (OAuth)
+Persistência de usuário
+Banco de dados
+🔥 PRIORIDADE 3
+Sistema de inscrição em campeonatos
+Lista real de participantes
+Painel admin básico
+🔥 PRIORIDADE 4
+Ranking
+Histórico de partidas
+estatísticas
+🧠 SEU NÍVEL ATUAL (ANÁLISE HONESTA)
+
+Você já está:
+
+✔ acima de iniciante
+✔ entrando em nível intermediário
+✔ entendendo estrutura de sistema
+
+Mas ainda precisa:
+
+organizar melhor arquitetura
+entender backend
+integrar sistemas reais
+🚀 PONTO MAIS IMPORTANTE AGORA
+
+👉 não sair criando mil páginas
+
+👉 foco total em:
+
+"fazer o básico funcionar de verdade"
+
+🏁 RESUMO FINAL
+
+Você está construindo:
+
+👉 um produto real
+👉 com potencial de monetização
+👉 com arquitetura escalável
+
+Mas ainda está na fase:
+
+👉 protótipo funcional

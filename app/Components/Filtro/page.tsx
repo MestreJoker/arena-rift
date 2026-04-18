@@ -1,41 +1,49 @@
-'use client'
+"use client"
 
-export default function FiltrosCampeonato() {
-  return (
-    <div className="w-full bg-[#181818] border border-[#252525] rounded-lg p-5 mb-10 flex flex-col sm:flex-row gap-10 sm:justify-center">
+interface FiltroProps {
+    modoAtivo: string;
+    setModo: (val: string) => void;
+    statusAtivo: string;
+    setStatus: (val: string) => void;
+}
 
-      {/* Tipo */}
-      <div className="flex flex-col">
-        <label htmlFor="selectModoCompeticao" className="text-white text-[0.8rem] px-1.5">
-          Modo
-        </label>
-        <select id="selectModoCompeticao" className="bg-[#141414] text-white border border-[#252525] 
-                         rounded-md p-3 focus:outline-none 
-                         focus:border-[#f57c01] focus:ring-1 focus:ring-[#f57c01]
-                         hover:cursor-pointer hover:bg-[#0a0a0a]">
-          <option>Todos</option>
-          <option>1v1</option>
-          <option>5v5</option>
-        </select>
-      </div>
+export default function FiltrosCampeonato({ modoAtivo, setModo, statusAtivo, setStatus }: FiltroProps) {
+    const modos = ["Todos os Modos", "1v1", "5v5"];
+    const statusOpcoes = ["Todos os Status", "Aberto", "Em andamento", "Finalizado"];
 
+    return (
+        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div className="flex gap-2 bg-[#141414] p-1 rounded-lg border border-white/5">
+                {modos.map((m) => (
+                    <button
+                        key={m}
+                        onClick={() => setModo(m)}
+                        className={`px-4 py-2 rounded-md text-xs font-bold transition-all hover:cursor-pointer hover:scale-105 ${
+                            modoAtivo === m 
+                            ? "bg-[#cd6931] text-white" 
+                            : "text-gray-400 hover:text-white"
+                        }`}
+                    >
+                        {m}
+                    </button>
+                ))}
+            </div>
 
-      {/* Status */}
-      <div className="flex flex-col">
-        <label htmlFor="selectStatusCompeticao" className="text-white text-[0.8rem] px-1.5">
-          Status
-        </label>
-        <select id="selectStatusCompeticao" className="bg-[#141414] text-white border border-[#252525] 
-                         rounded-md p-3 focus:outline-none 
-                         focus:border-[#f57c01] focus:ring-1 focus:ring-[#f57c01]
-                         hover:cursor-pointer hover:bg-[#0a0a0a]">
-          <option>Todos</option>
-          <option>Aberto</option>
-          <option>Em andamento</option>
-        </select>
-      </div>
-
-
-    </div>
-  );
+            <div className="flex gap-2 bg-[#141414] p-1 rounded-lg border border-white/5">
+                {statusOpcoes.map((s) => (
+                    <button
+                        key={s}
+                        onClick={() => setStatus(s)}
+                        className={`px-4 py-2 rounded-md text-xs font-bold transition-all hover:cursor-pointer hover:scale-105 ${
+                            statusAtivo === s 
+                            ? "bg-[#cd6931] text-white" 
+                            : "text-gray-400 hover:text-white"
+                        }`}
+                    >
+                        {s}
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
 }
