@@ -1,10 +1,11 @@
 'use client'
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import CampeonatoCard from "../CampeonatoCard/page"
 
 export default function CarrosselCampeonatos() {
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [itemsToShow, setItemsToShow] = useState(3);
 
     const campeonatos = [
         { id: "0", titulo: "1v1 Desafio Supremo", tipo: "1v1", status: "Aberto", jogadores: "12/16", premio: "R$100", imagem: "/images/imageHome5.jpg" },
@@ -15,13 +16,34 @@ export default function CarrosselCampeonatos() {
         { id: "5", titulo: "Liga Semanal", tipo: "5v5", status: "Aberto", jogadores: "2/8", premio: "R$150", imagem: "/images/imageHome5.jpg" },
     ];
 
-    // Ajuste de visibilidade: 3 no PC, 2 no Tablet, 1 no Mobile
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 640) {
+                setItemsToShow(1);
+            } else if (window.innerWidth < 1024) {
+                setItemsToShow(2);
+            } else {
+                setItemsToShow(3);
+            }
+        };
+
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    // Avança apenas se não estiver no último conjunto possível
     const nextSlide = () => {
-        setCurrentIndex((prev) => (prev + 1 >= campeonatos.length ? 0 : prev + 1));
+        if (currentIndex < campeonatos.length - itemsToShow) {
+            setCurrentIndex((prev) => prev + 1);
+        }
     };
 
+    // Recua apenas se não estiver no primeiro item
     const prevSlide = () => {
-        setCurrentIndex((prev) => (prev - 1 < 0 ? campeonatos.length - 1 : prev - 1));
+        if (currentIndex > 0) {
+            setCurrentIndex((prev) => prev - 1);
+        }
     };
 
     return (
@@ -36,48 +58,41 @@ export default function CarrosselCampeonatos() {
                 </Link>
             </div>
 
-            {/* Container Relativo para as setas ficarem "fora" ou por cima das bordas */}
             <div className="relative px-2">
-                
-                {/* Janela de Visualização (Clip) */}
                 <div className="overflow-hidden">
                     <div 
                         className="flex transition-transform duration-500 ease-in-out"
                         style={{ 
-                            transform: `translateX(-${currentIndex * (100 / (typeof window !== 'undefined' && window.innerWidth < 640 ? 1 : window.innerWidth < 1024 ? 2 : 3))}%)` 
+                            transform: `translateX(-${currentIndex * (100 / itemsToShow)}%)` 
                         }}
                     >
                         {campeonatos.map((camp) => (
                             <div key={camp.id} className="min-w-full sm:min-w-[50%] lg:min-w-[33.333%] px-3">
-                                <CampeonatoCard 
-                                    id={camp.id}
-                                    titulo={camp.titulo}
-                                    tipo={camp.tipo}
-                                    status={camp.status}
-                                    jogadores={camp.jogadores}
-                                    premio={camp.premio}
-                                    imagem={camp.imagem}
-                                />
+                                <CampeonatoCard {...camp} />
                             </div>
                         ))}
                     </div>
                 </div>
 
-                {/* Setas Visíveis em todas as telas */}
-                <button 
-                    onClick={prevSlide}
-                    className="absolute -left-4 sm:-left-8 top-1/2 -translate-y-1/2 bg-black border border-white/10 w-10 h-10 sm:w-12 sm:h-12 rounded-full text-white hover:text-[#cd6931] hover:border-[#cd6931]/50 z-30 transition-all flex items-center justify-center shadow-xl"
-                    aria-label="Anterior"
-                >
-                    &#10094;
-                </button>
-                <button 
-                    onClick={nextSlide}
-                    className="absolute -right-4 sm:-right-8 top-1/2 -translate-y-1/2 bg-black border border-white/10 w-10 h-10 sm:w-12 sm:h-12 rounded-full text-white hover:text-[#cd6931] hover:border-[#cd6931]/50 z-30 transition-all flex items-center justify-center shadow-xl"
-                    aria-label="Próximo"
-                >
-                    &#10095;
-                </button>
+                {/* Seta Esquerda - Só aparece se não estiver no index 0 */}
+                {currentIndex > 0 && (
+                    <button 
+                        onClick={prevSlide}
+                        className="absolute -left-4 sm:-left-8 top-1/2 -translate-y-1/2 bg-black border border-white/10 w-10 h-10 sm:w-12 sm:h-12 rounded-full text-white hover:text-[#cd6931] hover:border-[#cd6931]/50 z-30 transition-all flex items-center justify-center shadow-xl hover:cursor-pointer"
+                    >
+                        &#10094;
+                    </button>
+                )}
+
+                {/* Seta Direita - Só aparece se ainda houver itens escondidos à direita */}
+                {currentIndex < campeonatos.length - itemsToShow && (
+                    <button 
+                        onClick={nextSlide}
+                        className="absolute -right-4 sm:-right-8 top-1/2 -translate-y-1/2 bg-black border border-white/10 w-10 h-10 sm:w-12 sm:h-12 rounded-full text-white hover:text-[#cd6931] hover:border-[#cd6931]/50 z-30 transition-all flex items-center justify-center shadow-xl hover:cursor-pointer"
+                    >
+                        &#10095;
+                    </button>
+                )}
             </div>
         </section>
     );

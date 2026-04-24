@@ -1,7 +1,7 @@
 "use client"
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
-// Corrigindo a interface: id deve ser string para bater com a rota dinâmica [id]
 interface CampeonatoProps {
     id: string; 
     titulo: string;
@@ -13,9 +13,22 @@ interface CampeonatoProps {
 }
 
 export default function CampeonatoCard({ id, titulo, tipo, status, jogadores, premio, imagem }: CampeonatoProps) {
+    const [isVisible, setIsVisible] = useState(false);
+
+    useEffect(() => {
+        // Pequeno delay para garantir que a animação seja percebida ao carregar
+        const timer = setTimeout(() => {
+            setIsVisible(true);
+        }, 150);
+        return () => clearTimeout(timer);
+    }, []);
+
     return (
         <Link href={`/Pages/Campeonatos/${id}`}>
-            <div className="group bg-[#141414] border border-white/5 rounded-xl overflow-hidden hover:border-[#cd6931]/50 transition-all duration-300 flex flex-col h-full">
+            <div 
+                className={`group bg-[#141414] border border-white/5 rounded-xl overflow-hidden hover:border-[#cd6931]/50 transition-all duration-700 ease-out flex flex-col h-full
+                ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+            >
                 {/* Imagem com Altura Fixa e Centralizada */}
                 <div className="relative h-44 overflow-hidden">
                     <img 

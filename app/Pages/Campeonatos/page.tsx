@@ -7,9 +7,10 @@ import Header from "@/app/Components/Header/page";
 import ListaCampeonatos from "@/app/Components/ListaCampeonatos/page";
 
 export default function Campeonatos() {
-  // Estados para controlar os filtros
+  // Estados para controlar os filtros e a busca
   const [modo, setModo] = useState("Todos os Modos");
   const [status, setStatus] = useState("Todos os Status");
+  const [busca, setBusca] = useState(""); // ADICIONADO: Estado para a barra de busca
 
   return (
     <main className="min-h-screen flex flex-col bg-[#0f0f0f]">
@@ -38,18 +39,24 @@ export default function Campeonatos() {
       {/* CONTEÚDO */}
       <section className="flex-1 w-full max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-6 md:py-10">
         <div className="flex flex-col gap-6">
-          {/* Passamos o estado e a função de alteração para o filtro */}
+          {/* CORRIGIDO: Agora passamos o estado 'busca' e a função 'setBusca' real */}
           <FiltrosCampeonato 
             modoAtivo={modo} 
             setModo={setModo} 
             statusAtivo={status} 
-            setStatus={setStatus} 
+            setStatus={setStatus}
+            busca={busca}
+            setBusca={setBusca}
           />
           
           <div className="w-full h-px bg-white/5"></div>
 
-          {/* Passamos os filtros ativos para a lista fazer o trabalho pesado */}
-          <ListaCampeonatos filtroModo={modo} filtroStatus={status} />
+          {/* CORRIGIDO: Passamos a 'busca' para a lista filtrar os nomes */}
+          <ListaCampeonatos 
+            filtroModo={modo} 
+            filtroStatus={status} 
+            busca={busca} 
+          />
         </div>
       </section>
 
