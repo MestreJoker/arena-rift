@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useSession } from "next-auth/react"
+import { useSession, signOut } from "next-auth/react" // Importação acrescentada
 import AuthModal from "../Modal/page"
 
 export default function Header() {
@@ -41,7 +41,7 @@ export default function Header() {
 
                     {/* Desktop Menu */}
                     <nav className="hidden sm:flex items-center gap-8">
-                        <Link href={"/Pages/Campeonatos"}>
+                        <Link href={"/pages/Campeonatos"}>
                             <p className="text-gray-300 font-medium hover:text-[#cd6931] transition-all uppercase tracking-widest hover:underline"
                                style={{ fontSize: 'clamp(0.6rem, 1.2vw, 0.8rem)' }}>
                                 Campeonatos
@@ -49,22 +49,32 @@ export default function Header() {
                         </Link>
                         
                         {session ? (
-                            /* ESTADO LOGADO: Exibe Foto do Perfil do Discord */
-                            <Link href="/perfil" className="group flex items-center gap-3 bg-white/5 p-1 pr-4 rounded-full border border-white/10 hover:border-[#cd6931]/50 transition-all duration-300">
-                                <img 
-                                    src={session.user?.image || ""} 
-                                    alt="Foto de Perfil" 
-                                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-[#cd6931] object-cover shadow-lg shadow-[#cd6931]/20"
-                                />
-                                <div className="flex flex-col">
-                                    <span className="text-white text-[10px] font-black uppercase tracking-tighter group-hover:text-[#cd6931] transition-colors leading-none">
-                                        Meu Perfil
-                                    </span>
-                                    <span className="text-gray-500 text-[8px] font-bold uppercase truncate max-w-[80px]">
-                                        {session.user?.name}
-                                    </span>
-                                </div>
-                            </Link>
+                            /* ESTADO LOGADO: Exibe Foto do Perfil do Discord + Botão Sair */
+                            <div className="flex items-center gap-6">
+                                <Link href="/pages/perfil" className="group flex items-center gap-3 bg-white/5 p-1 pr-4 rounded-full border border-white/10 hover:border-[#cd6931]/50 transition-all duration-300">
+                                    <img 
+                                        src={session.user?.image || ""} 
+                                        alt="Foto de Perfil" 
+                                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-[#cd6931] object-cover shadow-lg shadow-[#cd6931]/20"
+                                    />
+                                    <div className="flex flex-col">
+                                        <span className="text-white text-[10px] font-black uppercase tracking-tighter group-hover:text-[#cd6931] transition-colors leading-none">
+                                            Meu Perfil
+                                        </span>
+                                        <span className="text-gray-500 text-[8px] font-bold uppercase truncate max-w-[80px]">
+                                            {session.user?.name}
+                                        </span>
+                                    </div>
+                                </Link>
+                                
+                                {/* BOTÃO SAIR DESKTOP */}
+                                <button 
+                                    onClick={() => signOut({ callbackUrl: '/' })}
+                                    className="text-gray-500 text-[9px] font-bold uppercase tracking-widest hover:text-red-500 transition-colors"
+                                >
+                                    Sair
+                                </button>
+                            </div>
                         ) : (
                             /* ESTADO DESLOGADO: Botão Entrar Original */
                             <button 
@@ -90,19 +100,29 @@ export default function Header() {
 
                 {/* Menu Mobile Sidebar */}
                 <div className={`fixed top-0 right-0 w-[33.33vw] h-screen bg-[#0a0a0a] flex flex-col items-center pt-32 gap-10 transition-transform duration-500 ease-in-out border-l border-white/10 sm:hidden z-50 ${isOpen ? "translate-x-0" : "translate-x-full"}`}>
-                    <Link href={"/Pages/Campeonatos"} onClick={() => setIsOpen(false)}>
+                    <Link href={"/pages/Campeonatos"} onClick={() => setIsOpen(false)}>
                         <p className="text-white text-[10px] font-bold hover:text-[#cd6931] tracking-tighter text-center px-2 uppercase">Campeonatos</p>
                     </Link>
                     
                     {session ? (
-                        <Link href="/perfil" onClick={() => setIsOpen(false)} className="flex flex-col items-center gap-2">
-                             <img 
-                                src={session.user?.image || ""} 
-                                alt="Foto Perfil Mobile" 
-                                className="w-12 h-12 rounded-full border-2 border-[#cd6931]"
-                            />
-                            <p className="text-white text-[8px] font-bold uppercase tracking-widest">Ver Perfil</p>
-                        </Link>
+                        <div className="flex flex-col items-center gap-6">
+                            <Link href="/pages/perfil" onClick={() => setIsOpen(false)} className="flex flex-col items-center gap-2">
+                                <img 
+                                    src={session.user?.image || ""} 
+                                    alt="Foto Perfil Mobile" 
+                                    className="w-12 h-12 rounded-full border-2 border-[#cd6931]"
+                                />
+                                <p className="text-white text-[8px] font-bold uppercase tracking-widest">Ver Perfil</p>
+                            </Link>
+
+                            {/* BOTÃO SAIR MOBILE */}
+                            <button 
+                                onClick={() => signOut({ callbackUrl: '/' })}
+                                className="text-red-500 text-[9px] font-bold uppercase tracking-widest"
+                            >
+                                Sair
+                            </button>
+                        </div>
                     ) : (
                         <button 
                             onClick={() => {
