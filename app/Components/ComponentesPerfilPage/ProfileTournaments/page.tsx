@@ -1,14 +1,68 @@
 "use client";
+import { useState, useEffect } from "react";
+import { supabase } from "@/app/lib/supabase";
 
 interface ProfileTournamentsProps {
   userId: string;
 }
 
+interface Campeonato {
+  id: string;
+  titulo: string;
+  status: string;
+  data_inicio: string;
+}
+
 export default function ProfileTournaments({ userId }: ProfileTournamentsProps) {
-  const campeonatos = [
-    { id: 1, nome: "Copa Wild Rift #1", status: "Em andamento", data: "25 Abr" },
-    { id: 2, nome: "Liga Semanal ArenaRift", status: "Finalizado", data: "18 Abr" },
-  ];
+  const [campeonatos, setCampeonatos] = useState<Campeonato[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const fetchCampeonatos = async () => {
+      try {
+        // Buscar inscrições aprovadas do usuário (ajuste status se necessário)
+        const { data: inscricoes, error: inscError } = await supabase
+          .from("inscricoes")
+          .select(`
+            id_campeonato,
+            campeonatos (
+              id,
+              titulo,
+              status,
+              data_inicio
+            )
+          `)
+          .eq("id_usuario", userId);
+
+        if (inscError) {
+          console.error("Erro ao buscar inscrições:", inscError);
+          return;
+        }
+
+        // Filtrar campeonatos por status relevante (ajuste conforme seus enums)
+        const filtered = (inscricoes || [])
+          .filter((i: any) => i && i.campeonatos) // Remove inscrições sem campeonato
+          .map((i: any) => i.campeonatos)
+          .filter((c: any) => c && ["Em andamento", "Finalizado", "Aberto", "aprovado", "pendente"].includes(c.status));
+
+        setCampeonatos(filtered);
+      } catch (error) {
+        console.error("Erro ao buscar campeonatos:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCampeonatos();
+  }, [userId]);
+
+  if (loading) return <div className="text-white">Carregando campeonatos...</div>;
+
+  if (campeonatos.length === 0) {
+    return <div className="text-gray-500 text-center py-8">Nenhum campeonato encontrado.</div>;
+  }
 
   return (
     <div className="space-y-3">
@@ -23,14 +77,16 @@ export default function ProfileTournaments({ userId }: ProfileTournamentsProps) 
             </div>
             <div>
               <p className="text-white font-black italic uppercase tracking-tighter text-sm">
-                {c.nome}
+                {c.titulo}
               </p>
               <div className="flex gap-3 items-center">
                 <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest">
-                  {c.data}
+                  {new Date(c.data_inicio).toLocaleDateString('pt-BR')}
                 </span>
                 <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
-                  c.status === "Em andamento" ? "bg-green-500/10 text-green-500" : "bg-white/5 text-gray-500"
+                  c.status === "Em andamento" ? "bg-green-500/10 text-green-500" :
+                  c.status === "Finalizado" ? "bg-red-500/10 text-red-500" :
+                  "bg-white/5 text-gray-500"
                 }`}>
                   {c.status}
                 </span>

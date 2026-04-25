@@ -53,7 +53,7 @@ export default function CarrosselCampeonatos() {
                     <h2 className="text-[#cd6931] text-[10px] font-black tracking-[0.4em] uppercase">Competitivo</h2>
                     <h3 className="text-white text-3xl font-black italic uppercase">Destaques</h3>
                 </div>
-                <Link href="/pages/Campeonatos" className="text-gray-500 hover:text-[#cd6931] transition-colors font-bold text-[10px] tracking-widest uppercase border-b border-white/5 pb-1">
+                <Link href="/campeonatos" className="text-gray-500 hover:text-[#cd6931] transition-colors font-bold text-[10px] tracking-widest uppercase border-b border-white/5 pb-1">
                     Ver Todos →
                 </Link>
             </div>

@@ -1,4 +1,4 @@
-// app/pages/Campeonatos/[id]/page.tsx
+// app/campeonatos/[id]/page.tsx
 'use client'
 
 import { useParams } from 'next/navigation';

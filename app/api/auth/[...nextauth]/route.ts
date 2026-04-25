@@ -23,51 +23,77 @@ export const authOptions: NextAuthOptions = {
         `https://cdn.discordapp.com/avatars/${discord.id}/${discord.avatar}.png`;
 
       try {
+        console.log("Iniciando verificação de usuário no Supabase para ID:", discord.id, "Email:", discord.email);
+
         // 1. Tentar buscar usuário existente por ID ou E-mail
-        const { data: userByEmail } = await supabase
+        const { data: userByEmail, error: emailError } = await supabase
           .from("profiles")
           .select("*")
           .eq("email", discord.email)
           .maybeSingle();
 
-        const { data: userById } = await supabase
+        const { data: userById, error: idError } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", discord.id)
           .maybeSingle();
 
+        if (emailError) console.error("Erro ao buscar por email:", emailError);
+        if (idError) console.error("Erro ao buscar por ID:", idError);
+
         const existingUser = userById || userByEmail;
 
         if (existingUser) {
-          // Se já existe, apenas atualizamos os campos imutáveis do Discord e a foto
-          await supabase
+          console.log("Usuário existente encontrado:", existingUser.id);
+          // Se já existe, atualizamos apenas os campos imutáveis do Discord
+          // E APENAS atualizamos avatar_url se o usuário não tiver um avatar customizado (BASE64)
+          
+          const updateData: any = {
+            username_discord: discord.username,
+            email: discord.email // Garante que o e-mail esteja atualizado
+          };
+
+          // Só atualizar avatar se não tiver um customizado (que começa com 'data:image/')
+          if (!existingUser.avatar_url || !existingUser.avatar_url.startsWith('data:image/')) {
+            updateData.avatar_url = avatarUrl;
+          }
+
+          const { error: updateError } = await supabase
             .from("profiles")
-            .update({
-              username_discord: discord.username,
-              avatar_url: avatarUrl,
-              email: discord.email // Garante que o e-mail esteja atualizado
-            })
+            .update(updateData)
             .eq("id", existingUser.id);
+          
+          if (updateError) {
+            console.error("Erro ao atualizar perfil existente:", updateError);
+          } else {
+            console.log("Perfil existente atualizado com sucesso");
+          }
           
           return true;
         }
+
+        console.log("Usuário não encontrado, criando novo perfil");
 
         // 2. NOVO USUÁRIO: Tratar Nickname Único
         let finalNickname = discord.username;
         
         // Loop simples para garantir que o nickname seja único no ArenaRift
-        const { data: conflict } = await supabase
+        const { data: conflict, error: conflictError } = await supabase
           .from("profiles")
           .select("nickname_wildrift")
           .eq("nickname_wildrift", finalNickname)
           .maybeSingle();
 
+        if (conflictError) console.error("Erro ao verificar conflito de nickname:", conflictError);
+
         if (conflict) {
           // Se o nick "X" já existe, gera "X_123"
           finalNickname = `${discord.username}_${Math.floor(100 + Math.random() * 899)}`;
+          console.log("Nickname conflitante, gerado novo:", finalNickname);
         }
 
         // 3. INSERIR NO BANCO
+        console.log("Tentando inserir novo perfil:", { id: discord.id, nickname: finalNickname });
         const { error: insertError } = await supabase
           .from("profiles")
           .insert({
@@ -79,7 +105,7 @@ export const authOptions: NextAuthOptions = {
           });
 
         if (insertError) {
-          console.error("Erro ao inserir perfil no Supabase:", insertError.message);
+          console.error("Erro ao inserir perfil no Supabase:", insertError.message, insertError.details);
           // Se falhar a inserção, não barramos o login (para evitar Access Denied), 
           // mas o usuário ficará sem perfil no banco até o próximo login.
           return true; 

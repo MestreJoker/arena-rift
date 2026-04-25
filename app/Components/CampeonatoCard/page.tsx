@@ -24,7 +24,7 @@ export default function CampeonatoCard({ id, titulo, tipo, status, jogadores, pr
     }, []);
 
     return (
-        <Link href={`/pages/Campeonatos/${id}`}>
+        <Link href={`/campeonatos/${id}`}>
             <div 
                 className={`group bg-[#141414] border border-white/5 rounded-xl overflow-hidden hover:border-[#cd6931]/50 transition-all duration-700 ease-out flex flex-col h-full
                 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}

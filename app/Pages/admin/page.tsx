@@ -75,7 +75,7 @@ export default function AdminPage() {
       if (dbError) throw dbError;
 
       alert('Campeonato publicado na Arena Rift com sucesso!');
-      window.location.href = '/Pages/Campeonatos'; 
+      window.location.href = '/campeonatos'; 
       
     } catch (error) {
       console.error('Erro:', error);
