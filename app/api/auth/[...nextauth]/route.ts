@@ -53,8 +53,14 @@ export const authOptions: NextAuthOptions = {
             email: discord.email // Garante que o e-mail esteja atualizado
           };
 
-          // Só atualizar avatar se não tiver um customizado (que começa com 'data:image/')
-          if (!existingUser.avatar_url || !existingUser.avatar_url.startsWith('data:image/')) {
+          // Só atualizar avatar se o usuário não tiver um avatar customizado (BASE64)
+          // ou se o avatar atual estiver vazio / for o padrão do app.
+          const defaultAvatar = "/images/defaultAvatar.svg";
+          const hasCustomAvatar = existingUser.avatar_url?.startsWith?.('data:image/') ?? false;
+          const isDefaultAvatar = existingUser.avatar_url === defaultAvatar;
+          const isDiscordAvatar = typeof existingUser.avatar_url === 'string' && existingUser.avatar_url.includes('cdn.discordapp.com/avatars');
+
+          if (!existingUser.avatar_url || isDefaultAvatar || isDiscordAvatar) {
             updateData.avatar_url = avatarUrl;
           }
 

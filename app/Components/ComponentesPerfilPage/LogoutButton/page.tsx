@@ -1,8 +1,9 @@
 "use client";
+import { signOut } from "next-auth/react";
 
 export default function LogoutButton() {
   const handleLogout = () => {
-    alert("Logout realizado"); // depois liga com contexto
+    signOut({ callbackUrl: "/" });
   };
 
   return (

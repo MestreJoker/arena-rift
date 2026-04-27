@@ -17,11 +17,13 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showDiscordConfirm, setShowDiscordConfirm] = useState(false);
 
   const [nickname, setNickname] = useState(initialData?.nickname_wildrift || "");
   const [avatar, setAvatar] = useState(initialData?.avatar_url || "");
 
   const discordAvatar = session?.user?.image || "https://cdn.discordapp.com/embed/avatars/0.png";
+  const defaultAvatar = "/images/defaultAvatar.svg";
 
   // Converter arquivo em BASE64 para armazenar no banco
   const handleFileUpload = (file: File) => {
@@ -68,7 +70,7 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
       .from("profiles")
       .update({ 
         nickname_wildrift: nickname,
-        avatar_url: avatar || null
+        avatar_url: avatar || defaultAvatar
       })
       .eq("id", initialData.id);
 
@@ -90,7 +92,7 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
       const { error } = await supabase
         .from("profiles")
         .update({ 
-          avatar_url: null
+          avatar_url: defaultAvatar
         })
         .eq("id", initialData.id);
 
@@ -98,8 +100,8 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
         alert("Erro ao deletar a foto.");
         console.error("Erro ao deletar avatar:", error);
       } else {
-        // Limpar avatar local após sucesso
-        setAvatar("");
+        // Limpar avatar local após sucesso e manter valor padrão no banco
+        setAvatar(defaultAvatar);
         setShowDeleteConfirm(false);
         window.location.reload();
       }
@@ -112,12 +114,25 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
   };
 
   const handleUseDiscordAvatar = () => {
+    const currentAvatar = avatar || defaultAvatar;
+
+    if (currentAvatar !== defaultAvatar && currentAvatar !== discordAvatar) {
+      setShowDiscordConfirm(true);
+      return;
+    }
+
     setAvatar(discordAvatar);
+  };
+
+  const confirmUseDiscordAvatar = () => {
+    setAvatar(discordAvatar);
+    setShowDiscordConfirm(false);
   };
 
   if (!initialData) return null;
 
-  const currentAvatar = avatar || discordAvatar;
+  // Mostrar: avatar customizado > foto do Discord > avatar padrão
+  const currentAvatar = avatar || defaultAvatar;
 
   return (
     <div className="flex flex-col items-center text-center">
@@ -167,7 +182,7 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
           <div className="flex gap-2">
             <button 
               onClick={() => setShowDeleteConfirm(true)}
-              disabled={!avatar || avatar === discordAvatar}
+              disabled={currentAvatar === defaultAvatar}
               className="flex-1 bg-red-600 text-white text-[10px] font-bold py-2 rounded-lg uppercase transition-opacity hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Apagar Foto
@@ -175,9 +190,10 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
             {session?.user?.image && (
               <button 
                 onClick={handleUseDiscordAvatar} 
-                className="flex-1 bg-blue-600 text-white text-[10px] font-bold py-2 rounded-lg uppercase transition-opacity hover:opacity-80"
+                disabled={currentAvatar === discordAvatar}
+                className={`flex-1 text-white text-[10px] font-bold py-2 rounded-lg uppercase transition-opacity ${currentAvatar === discordAvatar ? 'bg-blue-400 cursor-not-allowed opacity-50' : 'bg-blue-600 hover:opacity-80'}`}
               >
-                Usar Foto Discord
+                {currentAvatar === discordAvatar ? 'Foto Discord Atual' : 'Usar Foto Discord'}
               </button>
             )}
           </div>
@@ -214,6 +230,33 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
                 onClick={() => setShowDeleteConfirm(false)}
                 disabled={saving}
                 className="flex-1 bg-white/5 text-gray-400 font-bold py-2 rounded-lg uppercase text-[10px] hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDiscordConfirm && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-[#141414] border border-white/10 rounded-2xl p-6 w-[90%] max-w-sm">
+            <h2 className="text-white text-lg font-black uppercase tracking-tighter mb-2">
+              Usar foto do Discord?
+            </h2>
+            <p className="text-gray-400 text-sm mb-6">
+              Você está prestes a mudar para a foto do Discord. Caso não salve a foto atual, ela poderá ficar indisponível se você excluí-la do dispositivo.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={confirmUseDiscordAvatar}
+                className="flex-1 bg-blue-600 text-white font-bold py-2 rounded-lg uppercase text-[10px] hover:bg-blue-700 transition-colors"
+              >
+                Confirmar
+              </button>
+              <button
+                onClick={() => setShowDiscordConfirm(false)}
+                className="flex-1 bg-white/5 text-gray-400 font-bold py-2 rounded-lg uppercase text-[10px] hover:bg-white/10 transition-colors"
               >
                 Cancelar
               </button>

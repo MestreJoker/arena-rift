@@ -13,6 +13,7 @@ export default function Header() {
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
     const [profileImage, setProfileImage] = useState<string>("");
     const [profileName, setProfileName] = useState<string>("");
+    const defaultAvatar = "/images/defaultAvatar.svg";
 
     // Buscar foto do perfil do ArenaRift (atualizado em tempo real)
     useEffect(() => {
@@ -34,11 +35,11 @@ export default function Header() {
 
                 if (data) {
                     console.log("Perfil carregado no Header:", { avatar_url: data.avatar_url ? "presente" : "vazio", nickname: data.nickname_wildrift });
-                    setProfileImage(data.avatar_url || session.user?.image || "");
+                    setProfileImage(data.avatar_url || defaultAvatar);
                     setProfileName(data.nickname_wildrift || session.user?.name || "");
                 } else {
                     console.warn("Nenhum perfil encontrado para ID:", session.user.id);
-                    setProfileImage(session.user?.image || "");
+                    setProfileImage(defaultAvatar);
                 }
             } catch (err) {
                 console.error("Exceção ao buscar perfil:", err);

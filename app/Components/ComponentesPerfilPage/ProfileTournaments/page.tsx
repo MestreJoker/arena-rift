@@ -17,6 +17,18 @@ export default function ProfileTournaments({ userId }: ProfileTournamentsProps) 
   const [campeonatos, setCampeonatos] = useState<Campeonato[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const isRelevantStatus = (status: string | undefined) =>
+    typeof status === 'string' &&
+    [
+      'Em andamento',
+      'Finalizado',
+      'Aberto',
+      'aprovado',
+      'pendente',
+      'cancelada',
+      'cancelado',
+    ].includes(status.toLowerCase());
+
   useEffect(() => {
     if (!userId) return;
 
@@ -43,9 +55,9 @@ export default function ProfileTournaments({ userId }: ProfileTournamentsProps) 
 
         // Filtrar campeonatos por status relevante (ajuste conforme seus enums)
         const filtered = (inscricoes || [])
-          .filter((i: any) => i && i.campeonatos) // Remove inscrições sem campeonato
-          .map((i: any) => i.campeonatos)
-          .filter((c: any) => c && ["Em andamento", "Finalizado", "Aberto", "aprovado", "pendente"].includes(c.status));
+          .filter((i) => Array.isArray(i?.campeonatos) && i.campeonatos.length > 0)
+          .map((i) => i.campeonatos[0] as Campeonato)
+          .filter((c) => isRelevantStatus(c.status));
 
         setCampeonatos(filtered);
       } catch (error) {
