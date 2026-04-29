@@ -13,6 +13,7 @@ export default function AdminPage() {
     status: 'Aberto',
     vagas_max: 16,
     premio_total: 0,
+    valor_inscricao: 0,
     descricao: ''
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -65,11 +66,11 @@ export default function AdminPage() {
           titulo: formData.titulo,
           tipo: formData.tipo,
           status: formData.status,
-          vagas_max: formData.vagas_max,
-          premio_total: formData.premio_total,
+          vagas_max: parseInt(formData.vagas_max.toString()),
+          premio_total: parseFloat(formData.premio_total.toString()),
+          valor_inscricao: parseFloat(formData.valor_inscricao.toString()),
           descricao: formData.descricao,
-          imagem_capa: imageUrl,
-          created_by: session.user?.id // Agora sabemos QUEM criou o torneio
+          imagem_capa: imageUrl
         }]);
 
       if (dbError) throw dbError;
@@ -120,6 +121,21 @@ export default function AdminPage() {
           <div>
             <label className="block text-[10px] font-bold uppercase text-gray-500 mb-2 tracking-widest">Informações e Regras</label>
             <textarea name="descricao" onChange={handleInputChange} rows={4} placeholder="Ex: Requisitos de elo, horários..." className="w-full bg-[#0f0f0f] border border-white/10 rounded-lg p-3 outline-none focus:border-[#cd6931] resize-none" />
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-[10px] font-bold uppercase text-gray-500 mb-2 tracking-widest">Vagas Máximas</label>
+              <input type="number" name="vagas_max" value={formData.vagas_max} onChange={handleInputChange} min="1" max="256" className="w-full bg-[#0f0f0f] border border-white/10 rounded-lg p-3 text-white focus:border-[#cd6931] outline-none" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold uppercase text-gray-500 mb-2 tracking-widest">Valor da Inscrição (R$)</label>
+              <input type="number" name="valor_inscricao" value={formData.valor_inscricao} onChange={handleInputChange} step="0.01" min="0" className="w-full bg-[#0f0f0f] border border-white/10 rounded-lg p-3 text-white focus:border-[#cd6931] outline-none" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold uppercase text-gray-500 mb-2 tracking-widest">Premiação Total (R$)</label>
+              <input type="number" name="premio_total" value={formData.premio_total} onChange={handleInputChange} step="0.01" min="0" className="w-full bg-[#0f0f0f] border border-white/10 rounded-lg p-3 text-white focus:border-[#cd6931] outline-none" />
+            </div>
           </div>
 
           <button disabled={loading} type="submit" className="w-full py-4 bg-[#cd6931] rounded-xl font-black uppercase tracking-widest hover:bg-[#b05a2a] transition-all disabled:opacity-50 shadow-lg shadow-[#cd6931]/20">

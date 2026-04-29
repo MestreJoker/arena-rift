@@ -8,6 +8,7 @@ import CardsHome from "./Widgets/CardsHome";
 import AuthModal from "./Components/Modal/page";
 import { useEffect, useState } from "react";
 import CarrosselCampeonatos from "./Components/CarrosselCampeonato/page";
+import CalendarioCampeonatos from "./Components/CalendarioCampeonatos/page";
 
 export default function Home() {
   const [isVisible, setIsVisible] = useState(false);
@@ -83,6 +84,7 @@ export default function Home() {
 
         <CardsHome />
         <CarrosselCampeonatos />
+        <CalendarioCampeonatos />
       </section>
 
       <div id="bgFooter" className="w-full mt-6">

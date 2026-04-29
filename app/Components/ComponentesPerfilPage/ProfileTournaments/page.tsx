@@ -1,6 +1,6 @@
 "use client";
-import { useState, useEffect } from "react";
-import { supabase } from "@/app/lib/supabase";
+import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 
 interface ProfileTournamentsProps {
   userId: string;
@@ -11,106 +11,158 @@ interface Campeonato {
   titulo: string;
   status: string;
   data_inicio: string;
+  valor_inscricao?: number | string | null;
+  premio_total?: number | string | null;
 }
 
-export default function ProfileTournaments({ userId }: ProfileTournamentsProps) {
-  const [campeonatos, setCampeonatos] = useState<Campeonato[]>([]);
-  const [loading, setLoading] = useState(true);
+interface InscricaoItem {
+  id: string;
+  status: string;
+  created_at: string;
+  campeonatos: Campeonato[];
+}
 
-  const isRelevantStatus = (status: string | undefined) =>
-    typeof status === 'string' &&
-    [
-      'Em andamento',
-      'Finalizado',
-      'Aberto',
-      'aprovado',
-      'pendente',
-      'cancelada',
-      'cancelado',
-    ].includes(status.toLowerCase());
+const isCancelledStatus = (status?: string) =>
+  typeof status === 'string' &&
+  ['cancelada', 'cancelado'].includes(status.toLowerCase());
+
+export default function ProfileTournaments({ userId }: ProfileTournamentsProps) {
+  const [inscricoes, setInscricoes] = useState<InscricaoItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+
+  const fetchInscricoes = useCallback(async () => {
+    setLoading(true);
+
+    try {
+      const response = await fetch('/api/inscricoes');
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('Erro ao buscar inscrições:', data);
+        setInscricoes([]);
+        return;
+      }
+
+      setInscricoes(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Erro ao buscar inscrições:', error);
+      setInscricoes([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (!userId) return;
+    fetchInscricoes();
+  }, [userId, fetchInscricoes]);
 
-    const fetchCampeonatos = async () => {
-      try {
-        // Buscar inscrições aprovadas do usuário (ajuste status se necessário)
-        const { data: inscricoes, error: inscError } = await supabase
-          .from("inscricoes")
-          .select(`
-            id_campeonato,
-            campeonatos (
-              id,
-              titulo,
-              status,
-              data_inicio
-            )
-          `)
-          .eq("id_usuario", userId);
+  const handleCancel = async (inscricaoId: string) => {
+    if (!confirm('Deseja realmente cancelar esta inscrição?')) return;
 
-        if (inscError) {
-          console.error("Erro ao buscar inscrições:", inscError);
-          return;
-        }
+    setCancellingId(inscricaoId);
 
-        // Filtrar campeonatos por status relevante (ajuste conforme seus enums)
-        const filtered = (inscricoes || [])
-          .filter((i) => Array.isArray(i?.campeonatos) && i.campeonatos.length > 0)
-          .map((i) => i.campeonatos[0] as Campeonato)
-          .filter((c) => isRelevantStatus(c.status));
+    try {
+      const response = await fetch('/api/inscricoes', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_inscricao: inscricaoId }),
+      });
 
-        setCampeonatos(filtered);
-      } catch (error) {
-        console.error("Erro ao buscar campeonatos:", error);
-      } finally {
-        setLoading(false);
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error('Erro ao cancelar inscrição:', result);
+        alert(result.error || 'Não foi possível cancelar a inscrição.');
+        return;
       }
-    };
 
-    fetchCampeonatos();
-  }, [userId]);
+      alert(result.message || 'Inscrição cancelada com sucesso.');
+      fetchInscricoes();
+    } catch (error) {
+      console.error('Erro ao cancelar inscrição:', error);
+      alert('Erro ao cancelar inscrição. Tente novamente.');
+    } finally {
+      setCancellingId(null);
+    }
+  };
 
   if (loading) return <div className="text-white">Carregando campeonatos...</div>;
 
-  if (campeonatos.length === 0) {
-    return <div className="text-gray-500 text-center py-8">Nenhum campeonato encontrado.</div>;
+  if (inscricoes.length === 0) {
+    return <div className="text-gray-500 text-center py-8">Você ainda não está inscrito em nenhum campeonato.</div>;
   }
 
   return (
-    <div className="space-y-3">
-      {campeonatos.map((c) => (
-        <div
-          key={c.id}
-          className="group flex flex-col sm:flex-row justify-between items-center bg-[#141414] border border-white/5 p-4 rounded-2xl hover:bg-white/[0.02] transition-all"
-        >
-          <div className="flex items-center gap-4 w-full">
-            <div className="w-10 h-10 rounded-xl bg-[#cd6931]/10 flex items-center justify-center border border-[#cd6931]/20">
-               <span className="text-[#cd6931] font-black text-xs">WR</span>
-            </div>
-            <div>
-              <p className="text-white font-black italic uppercase tracking-tighter text-sm">
-                {c.titulo}
-              </p>
-              <div className="flex gap-3 items-center">
-                <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest">
-                  {new Date(c.data_inicio).toLocaleDateString('pt-BR')}
+    <div className="space-y-4">
+      {inscricoes.map((item) => {
+        const campeonato = Array.isArray(item.campeonatos) ? item.campeonatos[0] : item.campeonatos;
+        if (!campeonato) return null;
+
+        const started = new Date(campeonato.data_inicio).getTime() <= Date.now();
+        const canCancel = !isCancelledStatus(item.status) && !started;
+
+        return (
+          <div key={item.id} className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#141414] p-4 shadow-lg shadow-black/10 transition-all hover:border-[#cd6931]/40 hover:bg-white/[0.02]">
+            <Link href={`/campeonatos/${campeonato.id}`} className="absolute inset-0 z-0" aria-label={`Ver detalhes do campeonato ${campeonato.titulo}`} />
+            <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-[#cd6931]/10 border border-[#cd6931]/20 text-[#cd6931] font-black">
+                  WR
+                </div>
+                <div>
+                  <p className="text-white text-base font-black tracking-tight">{campeonato.titulo}</p>
+                  <p className="text-gray-400 text-sm">
+                    {new Date(campeonato.data_inicio).toLocaleString('pt-BR', {
+                      day: '2-digit',
+                      month: 'long',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2 text-[10px] uppercase tracking-[0.3em] text-gray-300">
+                    <span className="rounded-full bg-white/5 px-3 py-1">{campeonato.status}</span>
+                    <span className="rounded-full bg-white/5 px-3 py-1">
+                      Inscrição: {campeonato.valor_inscricao != null ? `R$ ${Number(campeonato.valor_inscricao).toFixed(2)}` : 'Grátis'}
+                    </span>
+                    <span className={`rounded-full px-3 py-1 ${isCancelledStatus(item.status) ? 'bg-red-500/10 text-red-300' : 'bg-green-500/10 text-green-200'}`}>
+                      {item.status}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="relative z-20 flex flex-col items-start gap-2 sm:items-end">
+                <span className="text-[10px] uppercase tracking-[0.3em] text-gray-500">
+                  {isCancelledStatus(item.status)
+                    ? 'Inscrição cancelada'
+                    : started
+                    ? 'Não é mais possível cancelar'
+                    : 'Cancelar antes do início'}
                 </span>
-                <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
-                  c.status === "Em andamento" ? "bg-green-500/10 text-green-500" :
-                  c.status === "Finalizado" ? "bg-red-500/10 text-red-500" :
-                  "bg-white/5 text-gray-500"
-                }`}>
-                  {c.status}
-                </span>
+                <button
+                  type="button"
+                  disabled={!canCancel || cancellingId === item.id}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    event.preventDefault();
+                    handleCancel(item.id);
+                  }}
+                  className={`rounded-2xl border px-5 py-2 text-[11px] font-black uppercase tracking-[0.35em] transition-all ${
+                    canCancel
+                      ? 'border-[#cd6931] bg-[#cd6931] text-black hover:bg-[#e89a60]'
+                      : 'cursor-not-allowed border-white/10 bg-white/5 text-gray-500'
+                  }`}
+                >
+                  {cancellingId === item.id ? 'Cancelando...' : 'Cancelar'}
+                </button>
               </div>
             </div>
           </div>
-
-          <button className="mt-4 sm:mt-0 w-full sm:w-auto text-[10px] font-black uppercase tracking-widest border border-white/10 text-white px-6 py-2.5 rounded-lg hover:bg-[#cd6931] hover:border-[#cd6931] transition-all duration-300 shadow-lg shadow-black/20">
-            Detalhes
-          </button>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

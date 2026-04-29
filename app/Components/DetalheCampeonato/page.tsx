@@ -55,6 +55,7 @@ export default function DetalheCampeonato({ id }: Props) {
         const result = await response.json();
         const inscricoes = Array.isArray(result) ? result : result.data || [];
         const activeInscricao = inscricoes.find(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (item: any) =>
             item.id_campeonato === id &&
             !isCancelledStatus(item.status)

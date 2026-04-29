@@ -230,10 +230,10 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // 1. Verificar se a inscrição pertence ao usuário
+    // 1. Verificar se a inscrição pertence ao usuário e buscar dados do campeonato
     const { data: inscricao, error: erroBusca } = await supabase
       .from("inscricoes")
-      .select("id, id_usuario")
+      .select("id, id_usuario, status, id_campeonato")
       .eq("id", id_inscricao)
       .single();
 
@@ -248,6 +248,34 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json(
         { error: "Você não tem permissão para cancelar esta inscrição" },
         { status: 403 }
+      );
+    }
+
+    if (typeof inscricao.status === "string" && ["cancelada", "cancelado"].includes(inscricao.status.toLowerCase())) {
+      return NextResponse.json(
+        { error: "Esta inscrição já foi cancelada" },
+        { status: 400 }
+      );
+    }
+
+    const { data: campeonato, error: erroCampeonato } = await supabase
+      .from("campeonatos")
+      .select("id, data_inicio, status")
+      .eq("id", inscricao.id_campeonato)
+      .single();
+
+    if (erroCampeonato || !campeonato) {
+      return NextResponse.json(
+        { error: "Campeonato associado à inscrição não encontrado" },
+        { status: 404 }
+      );
+    }
+
+    const inicioCampeonato = new Date(campeonato.data_inicio).getTime();
+    if (isNaN(inicioCampeonato) || inicioCampeonato <= Date.now()) {
+      return NextResponse.json(
+        { error: "Não é possível cancelar inscrição após o início do campeonato" },
+        { status: 400 }
       );
     }
 

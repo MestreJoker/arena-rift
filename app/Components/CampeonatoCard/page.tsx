@@ -3,16 +3,17 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 interface CampeonatoProps {
-    id: string; 
+    id: string;
     titulo: string;
     tipo: string;
     status: string;
-    jogadores: string; 
-    premio: string;    
+    jogadores: string;
+    premio: string;
     imagem: string;
+    valor_inscricao?: string | number;
 }
 
-export default function CampeonatoCard({ id, titulo, tipo, status, jogadores, premio, imagem }: CampeonatoProps) {
+export default function CampeonatoCard({ id, titulo, tipo, status, jogadores, premio, imagem, valor_inscricao }: CampeonatoProps) {
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
@@ -54,15 +55,18 @@ export default function CampeonatoCard({ id, titulo, tipo, status, jogadores, pr
                         {titulo}
                     </h3>
 
-                    {/* Rodapé do Card - Alinhado à base */}
-                    <div className="mt-auto flex justify-between items-center pt-4 border-t border-white/5">
-                        <div className="flex flex-col">
-                            <span className="text-gray-500 text-[9px] uppercase font-bold tracking-tighter">Jogadores</span>
-                            <span className="text-white text-sm font-bold">{jogadores}</span>
-                        </div>
-                        <div className="flex flex-col items-end">
-                            <span className="text-gray-500 text-[9px] uppercase font-bold tracking-tighter">Premiação</span>
-                            <span className="text-[#cd6931] text-sm font-black">{premio}</span>
+                    <div className="mt-auto pt-4 border-t border-white/5">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="flex flex-col">
+                                <span className="text-gray-500 text-[9px] uppercase font-bold tracking-tighter">Inscrição</span>
+                                <span className="text-white text-sm font-bold">
+                                    {valor_inscricao != null ? `R$ ${valor_inscricao}` : 'Grátis'}
+                                </span>
+                            </div>
+                            <div className="flex flex-col items-end">
+                                <span className="text-gray-500 text-[9px] uppercase font-bold tracking-tighter">Premiação</span>
+                                <span className="text-[#cd6931] text-sm font-black">{premio}</span>
+                            </div>
                         </div>
                     </div>
                 </div>

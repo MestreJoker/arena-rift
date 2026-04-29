@@ -1,20 +1,26 @@
 'use client'
 import { useState, useEffect } from "react"
+import { supabase } from "@/app/lib/supabase"
 import Link from "next/link"
 import CampeonatoCard from "../CampeonatoCard/page"
+
+interface CampeonatoData {
+  id: string;
+  titulo: string;
+  tipo: string;
+  status: string;
+  vagas_max: number | null;
+  valor_inscricao: number | string | null;
+  premio_total: number | string | null;
+  imagem_capa: string | null;
+  data_inicio: string | null;
+}
 
 export default function CarrosselCampeonatos() {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [itemsToShow, setItemsToShow] = useState(3);
-
-    const campeonatos = [
-        { id: "0", titulo: "1v1 Desafio Supremo", tipo: "1v1", status: "Aberto", jogadores: "12/16", premio: "R$100", imagem: "/images/imageHome5.jpg" },
-        { id: "1", titulo: "5v5 Arena Elite", tipo: "5v5", status: "Em andamento", jogadores: "8/10", premio: "R$300", imagem: "/images/imageHome5.jpg" },
-        { id: "2", titulo: "1v1 Rápido", tipo: "1v1", status: "Aberto", jogadores: "6/16", premio: "R$50", imagem: "/images/imageHome5.jpg" },
-        { id: "3", titulo: "Copa Wild Rift #1", tipo: "5v5", status: "Aberto", jogadores: "4/16", premio: "R$500", imagem: "/images/imageHome5.jpg" },
-        { id: "4", titulo: "Duelo de Titãs", tipo: "1v1", status: "Em andamento", jogadores: "14/16", premio: "R$200", imagem: "/images/imageHome5.jpg" },
-        { id: "5", titulo: "Liga Semanal", tipo: "5v5", status: "Aberto", jogadores: "2/8", premio: "R$150", imagem: "/images/imageHome5.jpg" },
-    ];
+    const [campeonatos, setCampeonatos] = useState<CampeonatoData[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const handleResize = () => {
@@ -32,19 +38,61 @@ export default function CarrosselCampeonatos() {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Avança apenas se não estiver no último conjunto possível
+    useEffect(() => {
+      const fetchCampeonatos = async () => {
+        const { data, error } = await supabase
+          .from('campeonatos')
+          .select('id,titulo,tipo,status,vagas_max,valor_inscricao,premio_total,imagem_capa,data_inicio')
+          .in('status', ['Aberto', 'Em andamento'])
+          .order('data_inicio', { ascending: true })
+          .limit(10);
+
+        if (error) {
+          console.error('Erro ao carregar campeonatos do carrossel:', error);
+          setCampeonatos([]);
+        } else {
+          setCampeonatos(data ?? []);
+        }
+
+        setLoading(false);
+      };
+
+      fetchCampeonatos();
+    }, []);
+
     const nextSlide = () => {
         if (currentIndex < campeonatos.length - itemsToShow) {
             setCurrentIndex((prev) => prev + 1);
         }
     };
 
-    // Recua apenas se não estiver no primeiro item
     const prevSlide = () => {
         if (currentIndex > 0) {
             setCurrentIndex((prev) => prev - 1);
         }
     };
+
+    const items = loading
+      ? Array.from({ length: itemsToShow }, (_, index) => ({
+          id: `skeleton-${index}`,
+          titulo: 'Carregando...',
+          tipo: '...',
+          status: '...',
+          jogadores: '---',
+          premio: '---',
+          valor_inscricao: '---',
+          imagem: '/images/imageHome5.jpg'
+        }))
+      : campeonatos.map((camp) => ({
+          id: camp.id,
+          titulo: camp.titulo,
+          tipo: camp.tipo,
+          status: camp.status,
+          jogadores: camp.vagas_max ? `${camp.vagas_max} vagas` : 'Vagas indisponíveis',
+          premio: camp.premio_total != null ? `R$ ${Number(camp.premio_total).toFixed(2)}` : 'Sem prêmio',
+          imagem: camp.imagem_capa || '/images/imageHome5.jpg',
+          valor_inscricao: camp.valor_inscricao != null ? Number(camp.valor_inscricao).toFixed(2) : '0.00'
+        }))
 
     return (
         <section className="w-full py-16 px-4 sm:px-12 max-w-[1400px] mx-auto relative">
@@ -66,15 +114,14 @@ export default function CarrosselCampeonatos() {
                             transform: `translateX(-${currentIndex * (100 / itemsToShow)}%)` 
                         }}
                     >
-                        {campeonatos.map((camp) => (
+                        {items.map((camp) => (
                             <div key={camp.id} className="min-w-full sm:min-w-[50%] lg:min-w-[33.333%] px-3">
-                                <CampeonatoCard {...camp} />
+                                <CampeonatoCard {...camp} valor_inscricao={camp.valor_inscricao} />
                             </div>
                         ))}
                     </div>
                 </div>
 
-                {/* Seta Esquerda - Só aparece se não estiver no index 0 */}
                 {currentIndex > 0 && (
                     <button 
                         onClick={prevSlide}
@@ -84,7 +131,6 @@ export default function CarrosselCampeonatos() {
                     </button>
                 )}
 
-                {/* Seta Direita - Só aparece se ainda houver itens escondidos à direita */}
                 {currentIndex < campeonatos.length - itemsToShow && (
                     <button 
                         onClick={nextSlide}

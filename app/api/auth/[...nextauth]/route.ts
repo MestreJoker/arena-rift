@@ -48,19 +48,15 @@ export const authOptions: NextAuthOptions = {
           // Se já existe, atualizamos apenas os campos imutáveis do Discord
           // E APENAS atualizamos avatar_url se o usuário não tiver um avatar customizado (BASE64)
           
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const updateData: any = {
             username_discord: discord.username,
             email: discord.email // Garante que o e-mail esteja atualizado
           };
 
-          // Só atualizar avatar se o usuário não tiver um avatar customizado (BASE64)
-          // ou se o avatar atual estiver vazio / for o padrão do app.
-          const defaultAvatar = "/images/defaultAvatar.svg";
-          const hasCustomAvatar = existingUser.avatar_url?.startsWith?.('data:image/') ?? false;
-          const isDefaultAvatar = existingUser.avatar_url === defaultAvatar;
-          const isDiscordAvatar = typeof existingUser.avatar_url === 'string' && existingUser.avatar_url.includes('cdn.discordapp.com/avatars');
-
-          if (!existingUser.avatar_url || isDefaultAvatar || isDiscordAvatar) {
+          // Só atualizar avatar se estiver completamente vazio (null ou '')
+          // Se tiver QUALQUER valor (customizado, padrão, ou Discord anterior), respeita
+          if (!existingUser.avatar_url) {
             updateData.avatar_url = avatarUrl;
           }
 
