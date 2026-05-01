@@ -11,6 +11,28 @@ interface UserProfile {
   email: string;
 }
 
+const normalizeHandle = (rawHandle: string) => {
+  const trimmed = rawHandle.trim();
+  const [base, tag] = trimmed.split('#').map((part) => part.trim());
+  const cleanBase = (base || "Player")
+    .replace(/\s+/g, "")
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .slice(0, 20) || "Player";
+  const cleanTag = typeof tag === "string" && /^\d{4}$/.test(tag)
+    ? tag
+    : Math.floor(1000 + Math.random() * 9000).toString();
+
+  return `${cleanBase}#${cleanTag}`;
+};
+
+const splitHandle = (handle: string) => {
+  const [name, tag] = handle.split('#');
+  return {
+    base: name || handle || "Player",
+    tag: tag || "0000",
+  };
+};
+
 export default function ProfileHeader({ initialData }: { initialData: UserProfile | null }) {
   const { data: session } = useSession();
   const [isEditing, setIsEditing] = useState(false);
@@ -19,7 +41,7 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showDiscordConfirm, setShowDiscordConfirm] = useState(false);
 
-  const [nickname, setNickname] = useState(initialData?.nickname_wildrift || "");
+  const [handle, setHandle] = useState(initialData?.nickname_wildrift || "");
   const [avatar, setAvatar] = useState(initialData?.avatar_url || "");
 
   const discordAvatar = session?.user?.image || "https://cdn.discordapp.com/embed/avatars/0.png";
@@ -51,16 +73,17 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
     if (!initialData?.id) return;
     setSaving(true);
 
-    // Verificar se nickname já existe
-    if (nickname !== initialData.nickname_wildrift) {
+    const formattedHandle = normalizeHandle(handle);
+
+    if (formattedHandle !== initialData.nickname_wildrift) {
       const { data: existing } = await supabase
         .from("profiles")
         .select("id")
-        .eq("nickname_wildrift", nickname)
+        .eq("nickname_wildrift", formattedHandle)
         .neq("id", initialData.id)
         .single();
       if (existing) {
-        alert("Este nickname já está em uso.");
+        alert("Este nome de perfil já está em uso. Tente outro ou atualize sua tag.");
         setSaving(false);
         return;
       }
@@ -69,7 +92,7 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
     const { error } = await supabase
       .from("profiles")
       .update({ 
-        nickname_wildrift: nickname,
+        nickname_wildrift: formattedHandle,
         avatar_url: avatar || defaultAvatar
       })
       .eq("id", initialData.id);
@@ -145,9 +168,10 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
       {!isEditing ? (
         <>
           <h1 className="text-white text-2xl font-black italic uppercase tracking-tighter">
-            {initialData.nickname_wildrift}
+            {splitHandle(initialData.nickname_wildrift).base}
+            <span className="text-gray-500">#{splitHandle(initialData.nickname_wildrift).tag}</span>
           </h1>
-          <p className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-4">
+          <p className="text-gray-500 text-[10px] font-semibold uppercase tracking-[0.2em] mb-4">
             @{initialData.username_discord}
           </p>
           <button 
@@ -160,11 +184,12 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
       ) : (
         <div className="w-full space-y-3 mt-2 text-left">
           <div>
-            <label className="text-[9px] text-gray-500 uppercase font-black ml-1">Nickname ArenaRift</label>
+            <label className="text-[9px] text-gray-500 uppercase font-semibold ml-1">Handle ArenaRift</label>
             <input 
               type="text" 
-              value={nickname} 
-              onChange={(e) => setNickname(e.target.value)}
+              value={handle} 
+              onChange={(e) => setHandle(e.target.value)}
+              placeholder="Gabriel#1234"
               className="w-full bg-[#0a0a0a] border border-white/10 rounded-lg px-3 py-2 text-white text-xs outline-none focus:border-[#cd6931]"
             />
           </div>

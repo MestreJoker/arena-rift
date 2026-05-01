@@ -88,14 +88,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. Verificar se a inscrição já existe
+    // 1. Verificar se a inscrição já existe e se há registro cancelado
     console.log('Verificando inscrição existente...');
-    const { data: inscricaoExistente, error: erroExistente } = await supabase
+    const { data: inscricoesUsuario, error: erroExistente } = await supabase
       .from("inscricoes")
-      .select("id")
+      .select("id, status")
       .eq("id_usuario", session.user.id)
-      .eq("id_campeonato", id_campeonato)
-      .maybeSingle();
+      .eq("id_campeonato", id_campeonato);
 
     if (erroExistente) {
       console.error("Erro ao verificar inscrição existente:", erroExistente);
@@ -105,7 +104,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (inscricaoExistente) {
+    const inscricaoAtiva = inscricoesUsuario?.find(
+      (item: any) => !isCancelledStatus(item.status)
+    );
+    const inscricaoCancelada = inscricoesUsuario?.find(
+      (item: any) => isCancelledStatus(item.status)
+    );
+
+    if (inscricaoAtiva) {
       console.log('Usuário já inscrito neste campeonato');
       return NextResponse.json(
         { error: "Você já está inscrito neste campeonato" },
@@ -113,7 +119,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('Inscrição não existe, prosseguindo...');
+    console.log('Nenhuma inscrição ativa encontrada, prosseguindo...');
 
     // 2. Buscar informações do campeonato
     console.log('Buscando informações do campeonato...');
@@ -163,16 +169,39 @@ export async function POST(request: NextRequest) {
 
     const inscricoesConfirmadas =
       inscricoesConfirmadasData?.filter(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (item: any) => !isCancelledStatus(item.status)
       ).length ?? 0;
 
     console.log('Inscrições confirmadas:', inscricoesConfirmadas, 'Vagas max:', campeonato.vagas_max);
 
-    if (inscricoesConfirmadas >= campeonato.vagas_max) {
+    if (campeonato.vagas_max !== null && inscricoesConfirmadas >= campeonato.vagas_max) {
       console.log('Campeonato lotado');
       return NextResponse.json(
         { error: "Este campeonato não possui mais vagas disponíveis" },
         { status: 400 }
+      );
+    }
+
+    if (inscricaoCancelada) {
+      console.log('Reativando inscrição cancelada existente:', inscricaoCancelada.id);
+      const { data: reativada, error: erroReativacao } = await supabase
+        .from("inscricoes")
+        .update({ status: "Pendente" })
+        .eq("id", inscricaoCancelada.id)
+        .select();
+
+      if (erroReativacao) {
+        console.error('Erro ao reativar inscrição cancelada:', erroReativacao);
+        return NextResponse.json(
+          { error: "Erro ao reativar inscrição" },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json(
+        { message: "Inscrição reativada com sucesso!", data: reativada },
+        { status: 200 }
       );
     }
 

@@ -54,6 +54,29 @@ export default function Perfil() {
 
   if (loading) return <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center text-white italic font-black uppercase">Carregando Arena...</div>;
 
+  if (status === "authenticated" && !userData) {
+    return (
+      <main className="min-h-screen flex flex-col bg-[#0f0f0f]">
+        <Header />
+        <section className="flex-1 w-full max-w-3xl mx-auto px-5 py-24 text-center">
+          <div className="rounded-3xl border border-white/10 bg-[#141414] p-10">
+            <h1 className="text-3xl font-black text-white mb-4">Finalize seu cadastro ArenaRift</h1>
+            <p className="text-gray-400 mb-6">
+              Sua conta Discord já está autenticada, mas falta criar o nick e a tag do ArenaRift.
+            </p>
+            <a
+              href="/register"
+              className="inline-flex rounded-2xl bg-[#cd6931] px-6 py-3 text-sm font-black uppercase text-white hover:bg-[#b45a2f] transition-colors"
+            >
+              Criar perfil agora
+            </a>
+          </div>
+        </section>
+        <Footer />
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen flex flex-col bg-[#0f0f0f]">
       <Header />

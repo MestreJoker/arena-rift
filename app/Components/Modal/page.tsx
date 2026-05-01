@@ -271,7 +271,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   // Função que dispara o login real do Discord via NextAuth
   const handleDiscordClick = () => {
-    signIn("discord");
+    signIn("discord", { callbackUrl: "/register" });
   };
 
   return (

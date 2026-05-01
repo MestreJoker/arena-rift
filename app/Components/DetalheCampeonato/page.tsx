@@ -16,6 +16,7 @@ export default function DetalheCampeonato({ id }: Props) {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [inscritosCount, setInscritosCount] = useState<number>(0);
   const { data: session, status } = useSession();
   const isLoggedIn = status === 'authenticated';
   const isSessionLoading = status === 'loading';
@@ -40,6 +41,24 @@ export default function DetalheCampeonato({ id }: Props) {
     }
     getCampeonato();
   }, [id]);
+
+  useEffect(() => {
+    if (!campeonato) return;
+
+    const fetchInscritosCount = async () => {
+      const { count, error } = await supabase
+        .from('inscricoes')
+        .select('id', { count: 'exact', head: true })
+        .eq('id_campeonato', id)
+        .neq('status', 'Cancelada');
+
+      if (!error && typeof count === 'number') {
+        setInscritosCount(count);
+      }
+    };
+
+    fetchInscritosCount();
+  }, [campeonato, id]);
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -124,11 +143,6 @@ export default function DetalheCampeonato({ id }: Props) {
 
   return (
     <div className={`flex-1 transition-all duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
-      {/* DEBUG INFO - REMOVER DEPOIS */}
-      <div className="bg-red-500 text-white p-2 text-xs">
-        DEBUG: Status={status}, LoggedIn={isLoggedIn ? 'YES' : 'NO'}, Session={session ? 'YES' : 'NO'}
-      </div>
-      
       {/* HEADER DO CAMPEONATO */}
       <section className="relative w-full h-[300px] md:h-[450px] overflow-hidden">
         <img 
@@ -164,13 +178,19 @@ export default function DetalheCampeonato({ id }: Props) {
         <div className="bg-[#141414] p-8 rounded-3xl border border-white/5 h-fit sticky top-24">
           <div className="space-y-6 mb-8">
             <div className="flex justify-between border-b border-white/5 pb-4">
-              <span className="text-gray-500 uppercase text-xs font-bold">Modo</span>
-              <span className="text-white font-bold">{campeonato.tipo}</span>
+              <span className="text-gray-500 uppercase text-xs font-semibold">Modo</span>
+              <span className="text-white font-semibold">{campeonato.tipo}</span>
             </div>
             <div className="flex justify-between border-b border-white/5 pb-4">
-              <span className="text-gray-500 uppercase text-xs font-bold">Premiação</span>
-              <span className="text-[#cd6931] font-black">
+              <span className="text-gray-500 uppercase text-xs font-semibold">Premiação</span>
+              <span className="text-[#cd6931] font-semibold">
                 {campeonato.premio_total ? `R$ ${campeonato.premio_total.toLocaleString('pt-BR')}` : "A consultar"}
+              </span>
+            </div>
+            <div className="flex justify-between border-b border-white/5 pb-4">
+              <span className="text-gray-500 uppercase text-xs font-semibold">Competidores</span>
+              <span className="text-white font-semibold">
+                {inscritosCount} confirmados
               </span>
             </div>
           </div>

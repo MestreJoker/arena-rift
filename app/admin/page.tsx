@@ -7,6 +7,7 @@ import Header from '@/app/Components/Header/page';
 export default function AdminPage() {
   const { data: session, status } = useSession();
   const [loading, setLoading] = useState(false);
+  const [vagasIlimitadas, setVagasIlimitadas] = useState(false);
   const [formData, setFormData] = useState({
     titulo: '',
     tipo: '5v5',
@@ -66,7 +67,7 @@ export default function AdminPage() {
           titulo: formData.titulo,
           tipo: formData.tipo,
           status: formData.status,
-          vagas_max: parseInt(formData.vagas_max.toString()),
+          vagas_max: vagasIlimitadas ? null : parseInt(formData.vagas_max.toString()),
           premio_total: parseFloat(formData.premio_total.toString()),
           valor_inscricao: parseFloat(formData.valor_inscricao.toString()),
           descricao: formData.descricao,
@@ -125,17 +126,29 @@ export default function AdminPage() {
 
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-[10px] font-bold uppercase text-gray-500 mb-2 tracking-widest">Vagas Máximas</label>
-              <input type="number" name="vagas_max" value={formData.vagas_max} onChange={handleInputChange} min="1" max="256" className="w-full bg-[#0f0f0f] border border-white/10 rounded-lg p-3 text-white focus:border-[#cd6931] outline-none" />
+              <label className="block text-[10px] font-semibold uppercase text-gray-500 mb-2 tracking-widest">Vagas Máximas</label>
+              <input type="number" name="vagas_max" value={formData.vagas_max} onChange={handleInputChange} min="1" max="256" disabled={vagasIlimitadas} className="w-full bg-[#0f0f0f] border border-white/10 rounded-lg p-3 text-white focus:border-[#cd6931] outline-none disabled:cursor-not-allowed disabled:opacity-50" />
+            </div>
+            <div className="flex items-center gap-3">
+              <input
+                id="vagas-ilimitadas"
+                type="checkbox"
+                checked={vagasIlimitadas}
+                onChange={() => setVagasIlimitadas((prev) => !prev)}
+                className="h-4 w-4 rounded border-white/20 bg-[#0f0f0f] text-[#cd6931] focus:ring-[#cd6931]"
+              />
+              <label htmlFor="vagas-ilimitadas" className="text-[10px] font-semibold uppercase text-gray-500 tracking-widest">
+                Vagas ilimitadas
+              </label>
             </div>
             <div>
-              <label className="block text-[10px] font-bold uppercase text-gray-500 mb-2 tracking-widest">Valor da Inscrição (R$)</label>
+              <label className="block text-[10px] font-semibold uppercase text-gray-500 mb-2 tracking-widest">Valor da Inscrição (R$)</label>
               <input type="number" name="valor_inscricao" value={formData.valor_inscricao} onChange={handleInputChange} step="0.01" min="0" className="w-full bg-[#0f0f0f] border border-white/10 rounded-lg p-3 text-white focus:border-[#cd6931] outline-none" />
             </div>
-            <div>
-              <label className="block text-[10px] font-bold uppercase text-gray-500 mb-2 tracking-widest">Premiação Total (R$)</label>
-              <input type="number" name="premio_total" value={formData.premio_total} onChange={handleInputChange} step="0.01" min="0" className="w-full bg-[#0f0f0f] border border-white/10 rounded-lg p-3 text-white focus:border-[#cd6931] outline-none" />
-            </div>
+          </div>
+          <div>
+            <label className="block text-[10px] font-semibold uppercase text-gray-500 mb-2 tracking-widest">Premiação Total (R$)</label>
+            <input type="number" name="premio_total" value={formData.premio_total} onChange={handleInputChange} step="0.01" min="0" className="w-full bg-[#0f0f0f] border border-white/10 rounded-lg p-3 text-white focus:border-[#cd6931] outline-none" />
           </div>
 
           <button disabled={loading} type="submit" className="w-full py-4 bg-[#cd6931] rounded-xl font-black uppercase tracking-widest hover:bg-[#b05a2a] transition-all disabled:opacity-50 shadow-lg shadow-[#cd6931]/20">

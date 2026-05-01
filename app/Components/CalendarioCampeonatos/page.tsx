@@ -1,90 +1,131 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/app/lib/supabase";
 import Link from "next/link";
 
-interface CampeonatoCalendario {
-  id: string;
-  titulo: string;
-  status: string;
-  data_inicio: string | null;
-  valor_inscricao: number | string | null;
+interface Camp {
+  id: string; titulo: string; tipo: string; status: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data_inicio: string | null; valor_inscricao: any; premio_total: any;
+  vagas_max: number | null;
 }
 
-function formatDate(dateString: string | null) {
-  if (!dateString) return "Data indefinida";
-  const date = new Date(dateString);
-  return date.toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-export default function CalendarioCampeonatos() {
-  const [eventos, setEventos] = useState<CampeonatoCalendario[]>([]);
+export default function CalendarioCampeonatos({ filtroModo = "Todos", filtroStatus = "Todos", busca = "" }) {
+  const [eventos, setEventos] = useState<Camp[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [date, setDate] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
 
   useEffect(() => {
-    const fetchEventos = async () => {
-      const { data, error } = await supabase
-        .from("campeonatos")
-        .select("id,titulo,status,data_inicio,valor_inscricao")
-        .in("status", ["Aberto", "Em andamento"])
-        .order("data_inicio", { ascending: true })
-        .limit(6);
-
-      if (error) {
-        console.error("Erro ao carregar calendário de campeonatos:", error);
-        setEventos([]);
-      } else {
-        setEventos(data ?? []);
-      }
+    async function load() {
+      const { data } = await supabase.from("campeonatos").select("*").order("data_inicio");
+      setEventos(data || []);
       setLoading(false);
-    };
-
-    fetchEventos();
+    }
+    load();
   }, []);
 
-  return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 py-16">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-8">
-        <div>
-          <p className="text-[#cd6931] text-[10px] font-black tracking-[0.4em] uppercase">Calendário</p>
-          <h2 className="text-white text-3xl font-black uppercase">Próximos Campeonatos</h2>
-        </div>
-        <Link href="/campeonatos" className="text-gray-500 hover:text-[#cd6931] transition-colors font-bold text-[10px] tracking-widest uppercase border-b border-white/5 pb-1">
-          Ver todos os eventos →
-        </Link>
-      </div>
+  const filtered = useMemo(() => eventos.filter(c => 
+    (filtroModo === "Todos" || c.tipo === filtroModo) &&
+    (filtroStatus === "Todos" || c.status === filtroStatus) &&
+    (c.titulo?.toLowerCase().includes(busca.toLowerCase()))
+  ), [eventos, filtroModo, filtroStatus, busca]);
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {loading ? (
-          Array.from({ length: 3 }).map((_, index) => (
-            <div key={index} className="rounded-3xl border border-white/10 bg-[#141414] p-6 animate-pulse" />
-          ))
-        ) : eventos.length === 0 ? (
-          <div className="rounded-3xl border border-white/10 bg-[#141414] p-8 text-center text-gray-400">
-            Nenhum campeonato em breve.
+  const eventMap = useMemo(() => {
+    const m = new Map<string, Camp[]>();
+    filtered.forEach(c => {
+      if (!c.data_inicio) return;
+      const k = c.data_inicio.split("T")[0];
+      m.set(k, [...(m.get(k) || []), c]);
+    });
+    return m;
+  }, [filtered]);
+
+  const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  const startOffset = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+
+  return (
+    <section className="text-left max-w-5xl py-8 px-4 font-sans antialiased text-white">
+      <header className="mb-6 flex items-end justify-between border-l-2 border-[#cd6931] pl-4">
+        <div>
+          <span className="text-[10px] font-bold tracking-[0.3em] text-[#cd6931] uppercase">Agenda</span>
+          <h2 className="text-2xl font-black uppercase tracking-tight">Campeonatos</h2>
+        </div>
+        <Link href="/campeonatos" className="text-[10px] font-bold uppercase text-gray-500 hover:text-[#cd6931] transition-colors">
+          Ver Tudo →
+        </Link>
+      </header>
+
+      <div className="grid gap-4 md:grid-cols-[1fr_320px]">
+        {/* Calendário */}
+        <div className="rounded-2xl border border-white/5 bg-[#111] p-4 shadow-2xl">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-sm font-black uppercase tracking-widest italic">
+              {date.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
+            </h3>
+            <div className="flex gap-1">
+              <button onClick={() => setDate(new Date(date.getFullYear(), date.getMonth() - 1, 1))} className="p-2 hover:bg-white/5 rounded-lg transition">‹</button>
+              <button onClick={() => setDate(new Date(date.getFullYear(), date.getMonth() + 1, 1))} className="p-2 hover:bg-white/5 rounded-lg transition">›</button>
+            </div>
           </div>
-        ) : (
-          eventos.map((camp) => (
-            <Link
-              key={camp.id}
-              href={`/campeonatos/${camp.id}`}
-              className="group rounded-3xl border border-white/10 bg-[#141414] p-6 transition-all hover:border-[#cd6931]/50 hover:bg-white/[0.03]"
-            >
-              <div className="mb-4 text-[10px] uppercase tracking-[0.3em] text-gray-500">{formatDate(camp.data_inicio)}</div>
-              <h3 className="text-white text-lg font-black leading-snug mb-4">{camp.titulo}</h3>
-              <div className="flex items-center justify-between gap-3 text-sm text-gray-300">
-                <span className="rounded-full bg-white/5 px-3 py-1 uppercase tracking-[0.25em]">{camp.status}</span>
-                <span className="text-[#cd6931] font-black">{camp.valor_inscricao != null ? `R$ ${Number(camp.valor_inscricao).toFixed(2)}` : 'Grátis'}</span>
-              </div>
-            </Link>
-          ))
-        )}
+
+          <div className="grid grid-cols-7 gap-1 mb-2 text-[9px] font-bold text-gray-600 uppercase text-center">
+            {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map(d => <div key={d}>{d}</div>)}
+          </div>
+
+          <div className="grid grid-cols-7 gap-1">
+            {Array.from({ length: startOffset + daysInMonth }).map((_, i) => {
+              const d = i - startOffset + 1;
+              if (d <= 0) return <div key={i} className="aspect-square bg-white/[0.02] rounded-md" />;
+              
+              const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+              const dayEvents = eventMap.get(key) || [];
+              const isToday = key === new Date().toISOString().split("T")[0];
+              const isActive = selectedDay === key;
+
+              return (
+                <button
+                  key={key}
+                  onClick={() => setSelectedDay(key)}
+                  className={`relative aspect-square rounded-md border text-xs font-bold transition-all flex flex-col items-center justify-center
+                    ${isActive ? "border-[#cd6931] bg-[#cd6931]/20" : "border-white/5 bg-white/5 hover:border-white/20"}
+                    ${dayEvents.length > 0 && !isActive ? "border-[#cd6931]/30" : ""}`}
+                >
+                  <span className={isToday ? "text-[#cd6931]" : ""}>{d}</span>
+                  {dayEvents.length > 0 && (
+                    <span className="absolute bottom-1 h-1 w-1 rounded-full bg-[#cd6931]" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Lista Lateral */}
+        <div className="rounded-2xl border border-white/5 bg-[#111] p-5">
+          <div className="mb-4 border-b border-white/5 pb-2">
+            <p className="text-[9px] font-bold uppercase text-gray-500 tracking-tighter">Eventos Selecionados</p>
+            <h4 className="text-xs font-bold text-white/60 uppercase italic">{selectedDay || "Clique em uma data"}</h4>
+          </div>
+
+          <div className="space-y-3 overflow-y-auto max-h-[340px] pr-2 scrollbar-hide">
+            {loading ? (
+              <div className="h-12 w-full animate-pulse bg-white/5 rounded-xl" />
+            ) : (eventMap.get(selectedDay || "") || []).length > 0 ? (
+              eventMap.get(selectedDay!)?.map(c => (
+                <Link key={c.id} href={`/campeonatos/${c.id}`} className="group block rounded-xl border border-white/5 bg-black/40 p-3 transition hover:border-[#cd6931]/50">
+                  <h5 className="text-[11px] font-black uppercase leading-tight group-hover:text-[#cd6931] transition-colors">{c.titulo}</h5>
+                  <div className="mt-2 flex items-center justify-between text-[9px] text-gray-500 font-bold uppercase tracking-tighter">
+                    <span>{c.tipo}</span>
+                    <span className="text-[#cd6931]">{c.vagas_max} Vagas</span>
+                  </div>
+                </Link>
+              ))
+            ) : (
+              <p className="text-[10px] text-gray-600 italic">Nenhum evento para este dia.</p>
+            )}
+          </div>
+        </div>
       </div>
     </section>
   );
