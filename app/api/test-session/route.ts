@@ -17,9 +17,12 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString()
     });
   } catch (err) {
+    // Verifica se 'err' é uma instância de Error para acessar .message com segurança
+    const errorMessage = err instanceof Error ? err.message : "Erro desconhecido";
+    
     console.error("Erro no teste de sessão:", err);
     return NextResponse.json(
-      { error: "Erro interno do servidor", details: err.message },
+      { error: "Erro interno do servidor", details: errorMessage },
       { status: 500 }
     );
   }
