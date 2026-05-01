@@ -169,7 +169,7 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
         <>
           <h1 className="text-white text-2xl font-black italic uppercase tracking-tighter">
             {splitHandle(initialData.nickname_wildrift).base}
-            <span className="text-gray-500">#{splitHandle(initialData.nickname_wildrift).tag}</span>
+            <span className="text-gray-500 text-[1rem]">#{splitHandle(initialData.nickname_wildrift).tag}</span>
           </h1>
           <p className="text-gray-500 text-[10px] font-semibold uppercase tracking-[0.2em] mb-4">
             @{initialData.username_discord}
