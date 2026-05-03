@@ -22,7 +22,7 @@ export default function Home() {
   }, []);
   
   return (
-    <main className="min-h-screen flex flex-col">
+    <main className="min-h-screen flex flex-col max-w-full overflow-x-hidden">
       <Header />
 
       <section id="content" className="w-full max-w-[3840px] mx-auto flex-1 relative">
