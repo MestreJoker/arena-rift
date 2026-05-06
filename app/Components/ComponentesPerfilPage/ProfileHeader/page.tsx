@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { supabase } from "@/app/lib/supabase";
+import { FiEdit2 } from "react-icons/fi"; // Certifique-se de ter react-icons instalado
 
 interface UserProfile {
   id: string;
@@ -47,7 +48,9 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
   const [handle, setHandle] = useState(initialData?.nickname_wildrift || "");
   const [avatar, setAvatar] = useState(initialData?.avatar_url || "");
 
-  // Bloquear rolagem do fundo quando qualquer modal estiver aberto
+  // Verifica se houve qualquer alteração em relação aos dados iniciais
+  const hasChanges = handle !== initialData?.nickname_wildrift || avatar !== initialData?.avatar_url;
+
   useEffect(() => {
     const isAnyModalOpen = showPhotoModal || showDeleteConfirm || showDiscordConfirm;
     if (isAnyModalOpen) {
@@ -69,6 +72,7 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
       reader.onload = (e) => {
         const base64 = e.target?.result as string;
         setAvatar(base64);
+        setShowPhotoModal(false); // Fecha o modal após selecionar o arquivo
       };
       reader.readAsDataURL(file);
     } catch (error) {
@@ -79,7 +83,7 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
   };
 
   const handleUpdate = async () => {
-    if (!initialData?.id) return;
+    if (!initialData?.id || !hasChanges) return;
     setSaving(true);
     const formattedHandle = normalizeHandle(handle);
 
@@ -95,7 +99,6 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
       alert("Erro ao atualizar perfil.");
     } else {
       setIsEditing(false);
-      setShowPhotoModal(false);
       window.location.reload(); 
     }
     setSaving(false);
@@ -104,26 +107,38 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
   const handleDeleteAvatar = async () => {
     setAvatar(defaultAvatar);
     setShowDeleteConfirm(false);
+    setShowPhotoModal(false); // Fecha o modal após a ação
   };
 
   const handleUseDiscordAvatar = () => {
-    if (avatar !== defaultAvatar && avatar !== discordAvatar) {
-      setShowDiscordConfirm(true);
-      return;
-    }
     setAvatar(discordAvatar);
+    setShowDiscordConfirm(false);
+    setShowPhotoModal(false); // Fecha o modal após a ação
   };
 
   if (!initialData) return null;
   const currentAvatar = avatar || defaultAvatar;
 
+  const btnClass = "cursor-pointer transition-all hover:scale-103 active:scale-95";
+
   return (
     <div className="flex flex-col items-center text-center">
-      <img 
-        src={currentAvatar} 
-        className="w-24 h-24 rounded-full border-2 border-[#cd6931] object-cover mb-4 shadow-xl shadow-[#cd6931]/20"
-        alt="Avatar"
-      />
+      {/* Container da Imagem com Lápis se estiver editando */}
+      <div className="relative group">
+        <img 
+          src={currentAvatar} 
+          className="w-24 h-24 rounded-full border-2 border-[#cd6931] object-cover mb-4 shadow-xl shadow-[#cd6931]/20"
+          alt="Avatar"
+        />
+        {isEditing && (
+          <button
+            onClick={() => setShowPhotoModal(true)}
+            className="absolute bottom-4 right-0 bg-[#cd6931] p-2 rounded-full border-2 border-[#0a0a0a] text-white cursor-pointer hover:scale-110 transition-transform"
+          >
+            <FiEdit2 size={14} />
+          </button>
+        )}
+      </div>
 
       {!isEditing ? (
         <>
@@ -136,13 +151,13 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
           </p>
           <button 
             onClick={() => setIsEditing(true)} 
-            className="text-[10px] text-[#cd6931] border border-[#cd6931]/30 px-4 py-1 rounded-full font-bold uppercase hover:bg-[#cd6931] hover:text-white transition-all"
+            className={`text-[10px] text-[#cd6931] border border-[#cd6931]/30 px-4 py-1 rounded-full font-bold uppercase hover:bg-[#cd6931] hover:text-white ${btnClass}`}
           >
             Editar Perfil
           </button>
         </>
       ) : (
-        <div className="w-full space-y-4 mt-2 text-left">
+        <div className="w-full space-y-4 mt-2 text-left max-w-xs">
           <div>
             <label className="text-[9px] text-gray-500 uppercase font-semibold ml-1">Handle ArenaRift</label>
             <input 
@@ -153,34 +168,38 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
             />
           </div>
 
-          <button 
-            onClick={() => setShowPhotoModal(true)}
-            className="w-full bg-white/5 border border-white/10 text-white text-[10px] font-bold py-2 rounded-lg uppercase hover:bg-white/10 transition-all"
-          >
-            Editar Foto
-          </button>
-
-          <button 
-            onClick={() => setShowDeleteConfirm(true)}
-            disabled={currentAvatar === defaultAvatar}
-            className="w-full bg-red-600/10 border border-red-600/20 text-red-500 text-[10px] font-bold py-2 rounded-lg uppercase hover:bg-red-600 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            Apagar Foto Atual
-          </button>
-
-          <div className="flex gap-2 pt-2 border-t border-white/5">
-            <button onClick={() => setIsEditing(false)} className="flex-1 bg-white/5 text-gray-400 text-[10px] font-bold py-2 rounded-lg uppercase hover:bg-white/10">
-              Voltar
+          <div className="flex flex-col gap-2">
+            <button 
+              onClick={handleUpdate} 
+              disabled={!hasChanges || saving} 
+              className={`w-full py-2 rounded-lg text-[10px] font-bold uppercase ${
+                hasChanges 
+                ? "bg-green-600 text-white hover:bg-green-700" 
+                : "bg-gray-800 text-gray-500 cursor-not-allowed opacity-50"
+              } ${btnClass}`}
+            >
+              {saving ? "Salvando..." : "Salvar Alterações"}
+            </button>
+            
+            <button 
+              onClick={() => {
+                setIsEditing(false);
+                setHandle(initialData.nickname_wildrift);
+                setAvatar(initialData.avatar_url || "");
+              }} 
+              className={`w-full bg-white/5 text-gray-400 text-[10px] font-bold py-2 rounded-lg uppercase hover:bg-white/10 ${btnClass}`}
+            >
+              Cancelar
             </button>
           </div>
         </div>
       )}
 
-      {/* MODAL DE EDIÇÃO DE FOTO - POSICIONAMENTO ABSOLUTO NO TOPO */}
+      {/* MODAL DE EDIÇÃO DE FOTO */}
       {showPhotoModal && (
-        <div className="fixed w-screen h-screen inset-0 bg-black/90 flex items-center justify-center z-[99999999] backdrop-blur-md p-4">
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[99999999] backdrop-blur-md p-4">
           <div className="bg-[#141414] border border-white/10 rounded-2xl p-6 w-full max-w-sm flex flex-col items-center animate-in fade-in zoom-in duration-200">
-            <h2 className="text-white text-lg font-black uppercase tracking-tighter mb-4 text-center">Ajustar Imagem</h2>
+            <h2 className="text-white text-lg font-black uppercase tracking-tighter mb-4 text-center">Editar Imagem</h2>
             
             <img 
               src={currentAvatar} 
@@ -199,64 +218,61 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
               
               <button 
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full bg-white/5 border border-white/10 text-white text-[10px] font-bold py-3 rounded-lg uppercase hover:bg-white/10"
+                className={`w-full bg-white/5 border border-white/10 text-white text-[10px] font-bold py-3 rounded-lg uppercase hover:bg-white/10 ${btnClass}`}
               >
                 {uploading ? "Processando..." : "Escolher Arquivo"}
               </button>
 
               {session?.user?.image && (
                 <button 
-                  onClick={handleUseDiscordAvatar}
-                  className="w-full bg-blue-600/20 border border-blue-600/30 text-blue-400 text-[10px] font-bold py-3 rounded-lg uppercase hover:bg-blue-600 hover:text-white transition-all"
+                  onClick={() => avatar === discordAvatar ? setShowPhotoModal(false) : setShowDiscordConfirm(true)}
+                  className={`w-full bg-blue-600/20 border border-blue-600/30 text-blue-400 text-[10px] font-bold py-3 rounded-lg uppercase hover:bg-blue-600 hover:text-white ${btnClass}`}
                 >
                   Usar Foto do Discord
                 </button>
               )}
 
-              <div className="pt-4 space-y-2">
-                <button 
-                  onClick={handleUpdate} 
-                  disabled={saving} 
-                  className="w-full bg-[#cd6931] text-white text-[10px] font-bold py-3 rounded-lg uppercase transition-opacity hover:opacity-90 disabled:opacity-50"
-                >
-                  {saving ? "Salvando..." : "Salvar Alterações"}
-                </button>
-                <button 
-                  onClick={() => setShowPhotoModal(false)}
-                  className="w-full text-gray-500 text-[9px] font-bold uppercase hover:text-white transition-colors"
-                >
-                  Cancelar
-                </button>
-              </div>
+              <button 
+                onClick={() => currentAvatar === defaultAvatar ? setShowPhotoModal(false) : setShowDeleteConfirm(true)}
+                className={`w-full border border-red-600/30 text-red-500 text-[10px] font-bold py-3 rounded-lg uppercase hover:bg-red-600/10 ${btnClass}`}
+              >
+                Apagar Foto Atual
+              </button>
+
+              <button 
+                onClick={() => setShowPhotoModal(false)}
+                className={`w-full text-gray-500 text-[9px] font-bold uppercase pt-2 hover:text-white ${btnClass}`}
+              >
+                Fechar
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modais de Confirmação com Z-index ainda maior se necessário */}
-      {(showDeleteConfirm || showDiscordConfirm) && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1000] p-4 backdrop-blur-md">
-          <div className="bg-[#141414] border border-white/10 rounded-2xl p-6 w-full max-w-sm animate-in fade-in zoom-in duration-200">
-            {showDeleteConfirm && (
-              <>
-                <h2 className="text-white text-lg font-black uppercase tracking-tighter mb-2">Apagar Foto?</h2>
-                <p className="text-gray-400 text-sm mb-6">A imagem será removida e substituída pelo avatar padrão. Você precisará salvar o perfil para confirmar.</p>
-                <div className="flex gap-3">
-                  <button onClick={handleDeleteAvatar} className="flex-1 bg-red-600 text-white font-bold py-2 rounded-lg uppercase text-[10px]">Confirmar</button>
-                  <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 bg-white/5 text-gray-400 font-bold py-2 rounded-lg uppercase text-[10px]">Cancelar</button>
-                </div>
-              </>
-            )}
-            {showDiscordConfirm && (
-              <>
-                <h2 className="text-white text-lg font-black uppercase tracking-tighter mb-2">Usar foto do Discord?</h2>
-                <p className="text-gray-400 text-sm mb-6">Isso substituirá sua foto atual pela do seu perfil do Discord.</p>
-                <div className="flex gap-3">
-                  <button onClick={() => {setAvatar(discordAvatar); setShowDiscordConfirm(false);}} className="flex-1 bg-blue-600 text-white font-bold py-2 rounded-lg uppercase text-[10px]">Confirmar</button>
-                  <button onClick={() => setShowDiscordConfirm(false)} className="flex-1 bg-white/5 text-gray-400 font-bold py-2 rounded-lg uppercase text-[10px]">Cancelar</button>
-                </div>
-              </>
-            )}
+      {/* CONFIRMAÇÕES */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100000000] p-4 backdrop-blur-sm">
+          <div className="bg-[#141414] border border-white/10 rounded-2xl p-6 w-full max-w-sm">
+            <h2 className="text-white text-lg font-black uppercase tracking-tighter mb-2">Remover Foto?</h2>
+            <p className="text-gray-400 text-sm mb-6">A imagem será substituída pelo avatar padrão na visualização atual.</p>
+            <div className="flex gap-3">
+              <button onClick={handleDeleteAvatar} className={`flex-1 bg-red-600 text-white font-bold py-2 rounded-lg uppercase text-[10px] ${btnClass}`}>Confirmar</button>
+              <button onClick={() => setShowDeleteConfirm(false)} className={`flex-1 bg-white/5 text-gray-400 font-bold py-2 rounded-lg uppercase text-[10px] ${btnClass}`}>Cancelar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDiscordConfirm && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100000000] p-4 backdrop-blur-sm">
+          <div className="bg-[#141414] border border-white/10 rounded-2xl p-6 w-full max-w-sm">
+            <h2 className="text-white text-lg font-black uppercase tracking-tighter mb-2">Usar foto do Discord?</h2>
+            <p className="text-gray-400 text-sm mb-6">Sua foto será alterada para a do Discord na visualização atual.</p>
+            <div className="flex gap-3">
+              <button onClick={handleUseDiscordAvatar} className={`flex-1 bg-blue-600 text-white font-bold py-2 rounded-lg uppercase text-[10px] ${btnClass}`}>Confirmar</button>
+              <button onClick={() => setShowDiscordConfirm(false)} className={`flex-1 bg-white/5 text-gray-400 font-bold py-2 rounded-lg uppercase text-[10px] ${btnClass}`}>Cancelar</button>
+            </div>
           </div>
         </div>
       )}
