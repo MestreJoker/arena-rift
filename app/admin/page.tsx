@@ -1,11 +1,13 @@
 "use client"
-import { useState, ChangeEvent, FormEvent } from 'react';
+import { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import { supabase } from '@/app/lib/supabase';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation'; // Importado para o redirecionamento
 import Header from '@/app/Components/Header/page';
 
 export default function AdminPage() {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [vagasIlimitadas, setVagasIlimitadas] = useState(false);
   const [formData, setFormData] = useState({
@@ -19,9 +21,27 @@ export default function AdminPage() {
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
 
-  // Proteção de Rota: Só carrega o form se houver sessão
-  if (status === "loading") return <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center text-white italic">Verificando permissões...</div>;
-  if (!session) return <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center text-white italic">Acesso negado. Por favor, faça login com o Discord.</div>;
+  // IDs de Admin autorizados
+  const ADMIN_IDS = ["1069102751008706710", "337353633500758027"];
+
+  useEffect(() => {
+    // Se o status terminar de carregar e não houver sessão OU o ID não estiver na lista
+    if (status === "unauthenticated" || (status === "authenticated" && !ADMIN_IDS.includes(session?.user?.id || ""))) {
+      router.back(); // Redireciona para a página anterior
+    }
+  }, [status, session, router]);
+
+  // Enquanto verifica a permissão, exibe o loading para evitar flash de conteúdo proibido
+  if (status === "loading" || (status === "authenticated" && !ADMIN_IDS.includes(session?.user?.id || ""))) {
+    return (
+      <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center text-white italic font-black uppercase tracking-widest">
+        Verificando credenciais de Admin...
+      </div>
+    );
+  }
+
+  // Se o usuário não estiver logado, o useEffect acima cuidará do redirecionamento
+  if (!session) return null;
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -43,7 +63,6 @@ export default function AdminPage() {
 
       if (imageFile) {
         const fileExt = imageFile.name.split('.').pop();
-        // ADS Tip: Usar Date.now() em vez de Math.random() garante nomes únicos cronológicos
         const fileName = `${Date.now()}.${fileExt}`;
         const filePath = `capas/${fileName}`;
 
@@ -60,7 +79,6 @@ export default function AdminPage() {
         imageUrl = urlData.publicUrl;
       }
 
-      // 2. Salvar dados no Banco de Dados vinculado ao ID do Discord
       const { error: dbError } = await supabase
         .from('campeonatos')
         .insert([{
@@ -77,7 +95,7 @@ export default function AdminPage() {
       if (dbError) throw dbError;
 
       alert('Campeonato publicado na Arena Rift com sucesso!');
-      window.location.href = '/campeonatos'; 
+      router.push('/campeonatos'); 
       
     } catch (error) {
       console.error('Erro:', error);
@@ -99,7 +117,6 @@ export default function AdminPage() {
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-6 bg-[#141414] p-8 rounded-2xl border border-white/5 shadow-2xl">
-          {/* Campos de Input seguindo o seu padrão visual */}
           <div>
             <label className="block text-[10px] font-bold uppercase text-gray-500 mb-2 tracking-widest">Título do Torneio</label>
             <input name="titulo" onChange={handleInputChange} required placeholder="Nome do Campeonato" className="w-full bg-[#0f0f0f] border border-white/10 rounded-lg p-3 text-white focus:border-[#cd6931] outline-none transition-all" />
@@ -151,7 +168,7 @@ export default function AdminPage() {
             <input type="number" name="premio_total" value={formData.premio_total} onChange={handleInputChange} step="0.01" min="0" className="w-full bg-[#0f0f0f] border border-white/10 rounded-lg p-3 text-white focus:border-[#cd6931] outline-none" />
           </div>
 
-          <button disabled={loading} type="submit" className="w-full py-4 bg-[#cd6931] rounded-xl font-black uppercase tracking-widest hover:bg-[#b05a2a] transition-all disabled:opacity-50 shadow-lg shadow-[#cd6931]/20">
+          <button disabled={loading} type="submit" className="w-full py-4 bg-[#cd6931] rounded-xl font-black uppercase tracking-widest hover:bg-[#b05a2a] transition-all disabled:opacity-50 shadow-lg shadow-[#cd6931]/20 cursor-pointer">
             {loading ? 'Sincronizando com Supabase...' : 'Publicar Torneio Oficial'}
           </button>
         </form>

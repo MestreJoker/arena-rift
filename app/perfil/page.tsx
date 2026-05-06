@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation"; // Importado para o redirecionamento
 import { supabase } from "@/app/lib/supabase";
 import Header from "@/app/Components/Header/page";
 import Footer from "@/app/Components/Footer/page";
@@ -19,6 +20,7 @@ interface UserProfile {
 
 export default function Perfil() {
   const { data: session, status } = useSession();
+  const router = useRouter(); // Inicialização do router
   const [userData, setUserData] = useState<UserProfile | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -38,21 +40,36 @@ export default function Perfil() {
   }, []);
 
   useEffect(() => {
+    // PROTEÇÃO DE ROTA
+    if (status === "unauthenticated") {
+      router.back(); // Volta para a página anterior se não estiver logado
+      return;
+    }
+
     if (status === "authenticated" && session?.user?.id) {
       fetchUserData(session.user.id);
-    } else if (status === "unauthenticated") {
-      setLoading(false);
     }
-  }, [status, session, fetchUserData]);
+  }, [status, session, fetchUserData, router]);
 
   useEffect(() => {
-    if (!loading) {
+    if (!loading && status === "authenticated") {
       const timer = setTimeout(() => setIsVisible(true), 100);
       return () => clearTimeout(timer);
     }
-  }, [loading]);
+  }, [loading, status]);
 
-  if (loading) return <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center text-white italic font-black uppercase">Carregando Arena...</div>;
+  // Enquanto verifica a sessão ou carrega dados, exibe o loading
+  if (status === "loading" || (status === "authenticated" && loading)) {
+    return (
+      <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center text-white italic font-black uppercase tracking-widest">
+        Carregando Arena...
+      </div>
+    );
+  }
+
+  // Se o usuário estiver deslogado, o useEffect router.back() cuidará disso, 
+  // mas retornamos nulo aqui para evitar flash de conteúdo
+  if (status === "unauthenticated") return null;
 
   if (status === "authenticated" && !userData) {
     return (
@@ -80,17 +97,14 @@ export default function Perfil() {
   return (
     <main className="min-h-screen flex flex-col bg-[#0f0f0f]">
       <Header />
-      <section className={`flex-1 w-full max-w-7xl mx-auto px-5 py-12 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+      <section className={`mt-15 mb-4 flex-1 w-full max-w-7xl mx-auto px-5 py-12 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <aside className="lg:col-span-1">
             <div className="bg-[#141414] border border-white/5 rounded-2xl p-6 sticky top-24">
-
-              {/* A 'key' faz o componente reiniciar com os dados novos assim que eles carregam */}
               <ProfileHeader
                 key={userData?.id || 'loading'}
                 initialData={userData}
               />
-
               <div className="my-6 h-px bg-white/5"></div>
               <LogoutButton />
             </div>
