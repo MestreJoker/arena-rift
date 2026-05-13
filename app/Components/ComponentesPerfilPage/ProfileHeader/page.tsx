@@ -36,8 +36,7 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
   const [avatar, setAvatar] = useState(initialData?.avatar_url || "");
 
   const hasChanges = handle !== initialData?.nickname_wildrift || avatar !== initialData?.avatar_url;
-  // Verifica especificamente se a imagem mostrada no modal é diferente da original do banco
-  const imageChanged = avatar !== (initialData?.avatar_url || "/images/defaultAvatar.svg");
+  const imageChanged = avatar !== (initialData?.avatar_url || "/images/defaultAvatar.png");
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -52,12 +51,26 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
     }
   }, [showPhotoModal]);
 
+  // Função de rolagem com transição
   const scrollCarousel = (direction: 'left' | 'right') => {
     if (carouselRef.current) {
-      const { scrollLeft, clientWidth } = carouselRef.current;
-      const scrollTo = direction === 'left' ? scrollLeft - clientWidth / 2 : scrollLeft + clientWidth / 2;
-      carouselRef.current.scrollTo({ left: scrollTo, behavior: 'smooth' });
+      const scrollAmount = carouselRef.current.clientWidth * 0.6; // Rola 60% da largura visível
+      carouselRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
     }
+  };
+
+  const handleFileUpload = (file: File) => {
+    if (!file) return;
+    setUploading(true);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setAvatar(e.target?.result as string);
+      setUploading(false);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleUpdate = async () => {
@@ -67,7 +80,7 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
       .from("profiles")
       .update({ 
         nickname_wildrift: handle,
-        avatar_url: avatar || "/images/defaultAvatar.svg"
+        avatar_url: avatar || "/images/defaultAvatar.png"
       })
       .eq("id", initialData.id);
 
@@ -77,12 +90,8 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
 
   if (!initialData) return null;
 
-  const currentAvatar = avatar || "/images/defaultAvatar.svg";
+  const currentAvatar = avatar || "/images/defaultAvatar.png";
   const btnClass = "cursor-pointer transition-all hover:scale-103 active:scale-95";
-
-  function handleFileUpload(arg0: File): void {
-    throw new Error("Function not implemented.");
-  }
 
   return (
     <div className="flex flex-col items-center text-center">
@@ -132,7 +141,6 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
           <div className="relative bg-[#141414] border border-white/10 rounded-2xl p-6 w-full max-w-sm flex flex-col items-center animate-in fade-in zoom-in duration-200">
             <h2 className="text-white text-lg font-black uppercase tracking-tighter mb-4 text-center italic">Ajustar Arena</h2>
             
-            {/* Imagem Principal com botão de Reset (X) */}
             <div className="relative">
               <img 
                 src={currentAvatar} 
@@ -141,38 +149,37 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
               />
               {imageChanged && (
                 <button 
-                  onClick={() => setAvatar(initialData.avatar_url || "/images/defaultAvatar.svg")}
-                  className="absolute -top-1 -left-1 bg-red-600 text-white p-1.5 rounded-full border-2 border-[#141414] hover:bg-red-700 transition-colors shadow-lg cursor-pointer"
-                  title="Desfazer alteração"
+                  onClick={() => setAvatar(initialData.avatar_url || "/images/defaultAvatar.png")}
+                  className="absolute -top-1 -left-1 bg-red-600 text-white p-1.5 rounded-full border-2 border-[#141414] hover:bg-red-700 transition-colors shadow-lg cursor-pointer z-10"
                 >
                   <FiX size={16} />
                 </button>
               )}
             </div>
 
-            {/* Carrossel de Sugestões com Setas */}
-            <div className="w-full mb-6 relative group/carousel ">
+            <div className="w-full mb-6 relative group/carousel">
               <p className="text-[9px] text-gray-500 uppercase font-black tracking-widest mb-3 ml-1">Sugestões ArenaRift</p>
               
-              <div className="relative flex items-center overflow-x-hidden">
-                {/* Seta Esquerda (Oculta em Mobile) */}
+              <div className="relative flex items-center">
+                {/* Seta Esquerda (Apenas Desktop) */}
                 <button 
                   onClick={() => scrollCarousel('left')}
-                  className="hidden sm:flex absolute -left-2 z-10 bg-[#0a0a0a] border border-white/10 p-1.5 rounded-full text-white hover:text-[#cd6931] opacity-0 group-hover/carousel:opacity-100 transition-opacity cursor-pointer"
+                  className="hidden lg:flex absolute -left-4 z-20 bg-[#141414] border border-white/10 p-2 rounded-full text-[#cd6931] hover:bg-[#cd6931] hover:text-white opacity-0 group-hover/carousel:opacity-100 transition-all cursor-pointer"
                 >
-                  <FiChevronLeft size={18} />
+                  <FiChevronLeft size={20} />
                 </button>
 
+                {/* Carrossel: overflow-x-auto no mobile, hidden no desktop para as setas controlarem */}
                 <div 
                   ref={carouselRef}
-                  className="flex gap-3 overflow-x-auto lg:overflow-x-hidden pb-2 scrollbar-hide snap-x no-scrollbar"
+                  className="flex gap-3 overflow-x-auto lg:overflow-x-hidden scroll-smooth snap-x snap-mandatory no-scrollbar pb-2 w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
                 >
                   {sugestoes.map((url, index) => (
                     <button
                       key={index}
                       onClick={() => setAvatar(url)}
-                      className={`flex-shrink-0 snap-center rounded-full border-2 transition-all ${
-                        avatar === url ? "border-[#cd6931] scale-110" : "border-white/5 grayscale hover:grayscale-0 hover:border-white/20"
+                      className={`flex-shrink-0 snap-center rounded-full border-2 transition-all duration-300 ${
+                        avatar === url ? "border-[#cd6931] scale-105" : "border-white/5 grayscale hover:grayscale-0 hover:border-white/20"
                       }`}
                     >
                       <img src={url} className="w-16 h-16 rounded-full object-cover" alt={`Sugestão ${index}`} />
@@ -180,12 +187,12 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
                   ))}
                 </div>
 
-                {/* Seta Direita (Oculta em Mobile) */}
+                {/* Seta Direita (Apenas Desktop) */}
                 <button 
                   onClick={() => scrollCarousel('right')}
-                  className="hidden sm:flex absolute -right-2 z-10 bg-[#0a0a0a] border border-white/10 p-1.5 rounded-full text-white hover:text-[#cd6931] opacity-0 group-hover/carousel:opacity-100 transition-opacity cursor-pointer"
+                  className="hidden lg:flex absolute -right-4 z-20 bg-[#141414] border border-white/10 p-2 rounded-full text-[#cd6931] hover:bg-[#cd6931] hover:text-white opacity-0 group-hover/carousel:opacity-100 transition-all cursor-pointer"
                 >
-                  <FiChevronRight size={18} />
+                  <FiChevronRight size={20} />
                 </button>
               </div>
             </div>
