@@ -151,7 +151,7 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
             </div>
 
             {/* Carrossel de Sugestões com Setas */}
-            <div className="w-full mb-6 relative group/carousel overflow-x-hidden">
+            <div className="w-full mb-6 relative group/carousel ">
               <p className="text-[9px] text-gray-500 uppercase font-black tracking-widest mb-3 ml-1">Sugestões ArenaRift</p>
               
               <div className="relative flex items-center overflow-x-hidden">
@@ -165,7 +165,7 @@ export default function ProfileHeader({ initialData }: { initialData: UserProfil
 
                 <div 
                   ref={carouselRef}
-                  className="flex gap-3 overflow-x-hidden pb-2 scrollbar-hide snap-x no-scrollbar"
+                  className="flex gap-3 overflow-x-auto lg:overflow-x-hidden pb-2 scrollbar-hide snap-x no-scrollbar"
                 >
                   {sugestoes.map((url, index) => (
                     <button
