@@ -14,155 +14,113 @@ interface CampeonatoData {
   premio_total: number | string | null;
   imagem_capa: string | null;
   data_inicio: string | null;
+  descricao?: string;
 }
 
-export default function CarrosselCampeonatos() {
+interface CarrosselProps {
+    isAdmin?: boolean;
+    onEditClick?: (camp: CampeonatoData) => void;
+}
+
+export default function CarrosselCampeonatos({ isAdmin = false, onEditClick }: CarrosselProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [itemsToShow, setItemsToShow] = useState(3);
     const [campeonatos, setCampeonatos] = useState<CampeonatoData[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // Ajusta a quantidade de itens visíveis e define o comportamento (Desktop vs Mobile)
     useEffect(() => {
         const handleResize = () => {
-            if (window.innerWidth < 640) {
-                setItemsToShow(1);
-            } else if (window.innerWidth < 1024) {
-                setItemsToShow(2);
-            } else {
-                setItemsToShow(3);
-            }
+            if (window.innerWidth < 640) setItemsToShow(1);
+            else if (window.innerWidth < 1024) setItemsToShow(2);
+            else setItemsToShow(3);
         };
-
         handleResize();
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Busca os campeonatos ativos no Supabase
     useEffect(() => {
       const fetchCampeonatos = async () => {
-        const { data, error } = await supabase
-          .from('campeonatos')
-          .select('id,titulo,tipo,status,vagas_max,valor_inscricao,premio_total,imagem_capa,data_inicio')
-          .in('status', ['Aberto', 'Em andamento'])
-          .order('data_inicio', { ascending: true })
-          .limit(10);
-
-        if (error) {
-          console.error('Erro ao carregar campeonatos:', error);
-          setCampeonatos([]);
-        } else {
-          setCampeonatos(data ?? []);
+        let query = supabase.from('campeonatos').select('*');
+        
+        // Se não for admin, filtra apenas os ativos. Se for admin, mostra tudo.
+        if (!isAdmin) {
+            query = query.in('status', ['Aberto', 'Em andamento']);
         }
+
+        const { data, error } = await query.order('created_at', { ascending: false });
+
+        if (error) console.error(error);
+        else setCampeonatos(data ?? []);
         setLoading(false);
       };
 
       fetchCampeonatos();
-    }, []);
+    }, [isAdmin]);
 
     const nextSlide = () => {
-        if (currentIndex < campeonatos.length - itemsToShow) {
-            setCurrentIndex((prev) => prev + 1);
-        }
+        if (currentIndex < campeonatos.length - itemsToShow) setCurrentIndex(prev => prev + 1);
     };
 
     const prevSlide = () => {
-        if (currentIndex > 0) {
-            setCurrentIndex((prev) => prev - 1);
-        }
+        if (currentIndex > 0) setCurrentIndex(prev => prev - 1);
     };
 
-    // Prepara os itens ou skeletons para exibição
-    const items = useMemo(() => {
-        if (loading) {
-            return Array.from({ length: 3 }, (_, index) => ({
-                id: `skeleton-${index}`,
-                titulo: 'Carregando...',
-                tipo: '...',
-                status: '...',
-                jogadores: '---',
-                premio: '---',
-                valor_inscricao: '0.00',
-                imagem: '/images/imageHome5.jpg'
-            }));
-        }
-        return campeonatos.map((camp) => ({
-            id: camp.id,
-            titulo: camp.titulo,
-            tipo: camp.tipo,
-            status: camp.status,
-            jogadores: camp.vagas_max ? `${camp.vagas_max} vagas` : 'Vagas indisponíveis',
-            premio: camp.premio_total != null ? `R$ ${Number(camp.premio_total).toFixed(2)}` : 'Sem prêmio',
-            imagem: camp.imagem_capa || '/images/imageHome5.jpg',
-            valor_inscricao: camp.valor_inscricao != null ? Number(camp.valor_inscricao).toFixed(2) : '0.00'
-        }));
-    }, [loading, campeonatos]);
-
     return (
-        <section className="w-full py-16 px-4 sm:px-12 max-w-[1400px] mx-auto relative font-sans antialiased">
-            {/* Cabeçalho no estilo ArenaRift */}
-            <div className="flex justify-between items-end mb-8">
-                <div>
-                    <h2 className="text-[#cd6931] text-[10px] font-black tracking-[0.4em] uppercase">Competitivo</h2>
-                    <h3 className="text-white text-3xl font-black italic uppercase">Destaques</h3>
+        <section className={`w-full py-8 relative font-sans ${isAdmin ? '' : 'px-4 sm:px-12 max-w-[1400px] mx-auto'}`}>
+            {!isAdmin && (
+                <div className="flex justify-between items-end mb-8">
+                    <div>
+                        <h2 className="text-[#cd6931] text-[10px] font-black tracking-[0.4em] uppercase">Competitivo</h2>
+                        <h3 className="text-white text-3xl font-black italic uppercase">Destaques</h3>
+                    </div>
+                    <Link href="/campeonatos" className="text-gray-500 hover:text-[#cd6931] transition-colors font-bold text-[10px] tracking-widest uppercase border-b border-white/5 pb-1">
+                        Ver Todos →
+                    </Link>
                 </div>
-                <Link href="/campeonatos" className="text-gray-500 hover:text-[#cd6931] transition-colors font-bold text-[10px] tracking-widest uppercase border-b border-white/5 pb-1">
-                    Ver Todos →
-                </Link>
-            </div>
+            )}
 
-            <div className="relative">
-                {/* 
-                    Container de Scroll:
-                    - Mobile: overflow-x-auto com snap-scroll e padding à direita para mostrar o próximo card.
-                    - Desktop: overflow-hidden controlado pelas setas.
-                */}
-                <div className={`
-                    ${itemsToShow === 1 
-                        ? 'overflow-x-auto scroll-smooth snap-x snap-mandatory pr-16 scrollbar-hide' 
-                        : 'overflow-hidden px-2'}
-                `}>
+            <div className="relative group/carousel">
+                <div className={`overflow-hidden ${itemsToShow === 1 ? 'snap-x snap-mandatory' : ''}`}>
                     <div 
                         className="flex transition-transform duration-500 ease-in-out"
-                        style={{ 
-                            transform: itemsToShow === 1 ? 'none' : `translateX(-${currentIndex * (100 / itemsToShow)}%)` 
-                        }}
+                        style={{ transform: `translateX(-${currentIndex * (100 / itemsToShow)}%)` }}
                     >
-                        {items.map((camp) => (
+                        {campeonatos.map((camp) => (
                             <div 
                                 key={camp.id} 
-                                className={`
-                                    px-3 flex-shrink-0 transition-all
-                                    ${itemsToShow === 1 ? 'min-w-[85vw] snap-start' : 'min-w-full sm:min-w-[50%] lg:min-w-[33.333%]'}
-                                `}
+                                className={`px-2 flex-shrink-0 min-w-full sm:min-w-[50%] lg:min-w-[33.333%]`}
                             >
-                                <CampeonatoCard {...camp} valor_inscricao={camp.valor_inscricao} />
+                                <div className="relative">
+                                    <CampeonatoCard 
+                                        {...camp} 
+                                        imagem={camp.imagem_capa || '/images/imageHome5.jpg'}
+                                        jogadores={camp.vagas_max ? `${camp.vagas_max} vagas` : '---'}
+                                        premio={camp.premio_total ? `R$ ${Number(camp.premio_total).toFixed(2)}` : '---'}
+                                        valor_inscricao={Number(camp.valor_inscricao).toFixed(2)}
+                                    />
+                                    
+                                    {isAdmin && (
+                                        <div className="absolute inset-0 bg-black/60 opacity-0 hover:opacity-100 transition-opacity flex flex-col items-center justify-center rounded-2xl backdrop-blur-sm">
+                                            <p className="text-[8px] font-mono text-gray-400 mb-2">ID: {camp.id}</p>
+                                            <button 
+                                                onClick={() => onEditClick?.(camp)}
+                                                className="bg-[#cd6931] text-white px-6 py-2 rounded-full font-black uppercase text-[10px] tracking-tighter hover:scale-110 transition-transform cursor-pointer"
+                                            >
+                                                Editar Dados
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         ))}
                     </div>
                 </div>
 
-                {/* Controles de Navegação (Apenas Desktop) */}
-                {itemsToShow > 1 && (
+                {campeonatos.length > itemsToShow && (
                     <>
-                        {currentIndex > 0 && (
-                            <button 
-                                onClick={prevSlide}
-                                className="absolute -left-4 sm:-left-8 top-1/2 -translate-y-1/2 bg-black border border-white/10 w-10 h-10 sm:w-12 sm:h-12 rounded-full text-white hover:text-[#cd6931] hover:border-[#cd6931]/50 z-30 transition-all flex items-center justify-center shadow-xl hover:cursor-pointer"
-                            >
-                                &#10094;
-                            </button>
-                        )}
-
-                        {currentIndex < items.length - itemsToShow && (
-                            <button 
-                                onClick={nextSlide}
-                                className="absolute -right-4 sm:-right-8 top-1/2 -translate-y-1/2 bg-black border border-white/10 w-10 h-10 sm:w-12 sm:h-12 rounded-full text-white hover:text-[#cd6931] hover:border-[#cd6931]/50 z-30 transition-all flex items-center justify-center shadow-xl hover:cursor-pointer"
-                            >
-                                &#10095;
-                            </button>
-                        )}
+                        <button onClick={prevSlide} className="absolute -left-4 top-1/2 -translate-y-1/2 bg-black/80 border border-white/10 w-10 h-10 rounded-full text-white z-30 transition-all hover:text-[#cd6931]">&#10094;</button>
+                        <button onClick={nextSlide} className="absolute -right-4 top-1/2 -translate-y-1/2 bg-black/80 border border-white/10 w-10 h-10 rounded-full text-white z-30 transition-all hover:text-[#cd6931]">&#10095;</button>
                     </>
                 )}
             </div>
