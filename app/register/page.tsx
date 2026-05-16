@@ -1,8 +1,13 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { FiEdit2 } from "react-icons/fi";
 import { supabase } from "@/app/lib/supabase";
+import AvatarPhotoModal from "@/app/Components/AvatarPhotoModal";
+
+const DEFAULT_AVATAR = "/images/defaultAvatar.png";
 
 const normalizeBaseName = (name: string) =>
   name
@@ -24,6 +29,9 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState(DEFAULT_AVATAR);
+  const [draftAvatar, setDraftAvatar] = useState(DEFAULT_AVATAR);
   const [storedDiscord, setStoredDiscord] = useState<{ name: string; email: string | null; image: string | null } | null>(null);
 
   useEffect(() => {
@@ -54,6 +62,7 @@ export default function RegisterPage() {
     if (status === "authenticated") {
       verifyProfile();
     } else if (status === "unauthenticated") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setChecking(false);
     }
   }, [status, session, router]);
@@ -63,6 +72,7 @@ export default function RegisterPage() {
     const stored = window.localStorage.getItem("arenaRiftDiscordProfile");
     if (stored) {
       try {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setStoredDiscord(JSON.parse(stored));
       } catch {
         window.localStorage.removeItem("arenaRiftDiscordProfile");
@@ -81,11 +91,7 @@ export default function RegisterPage() {
 
     const base = normalizeBaseName(nick || session.user.name || storedDiscord?.name || "Player");
     const normalizedTag = tag.trim();
-    const cleanTag = normalizedTag === ""
-      ? randomTag()
-      : /^[0-9]{4}$/.test(normalizedTag)
-        ? normalizedTag
-        : "";
+    const cleanTag = normalizedTag === "" ? randomTag() : /^[0-9]{4}$/.test(normalizedTag) ? normalizedTag : "";
 
     if (!cleanTag) {
       setError("A tag deve ter 4 dígitos numéricos ou ser deixada em branco para gerar automaticamente.");
@@ -108,7 +114,6 @@ export default function RegisterPage() {
         return;
       }
 
-      const avatar = session.user.image || storedDiscord?.image || "/images/defaultAvatar.svg";
       const email = session.user.email || storedDiscord?.email || "";
       const usernameDiscord = session.user.name || storedDiscord?.name || "DiscordUser";
 
@@ -117,7 +122,7 @@ export default function RegisterPage() {
         username_discord: usernameDiscord,
         nickname_wildrift: handle,
         email,
-        avatar_url: avatar,
+        avatar_url: selectedAvatar || DEFAULT_AVATAR,
       });
 
       if (insertError) {
@@ -128,13 +133,23 @@ export default function RegisterPage() {
       }
 
       window.localStorage.removeItem("arenaRiftDiscordProfile");
-      alert("Nick não existe no ArenaRift. Cadastro concluído com sucesso!");
+      setShowAvatarModal(false);
       router.push("/perfil");
     } catch (err) {
       console.error(err);
       setError("Erro inesperado ao criar o perfil.");
       setSaving(false);
     }
+  };
+
+  const openAvatarModal = () => {
+    setDraftAvatar(selectedAvatar || DEFAULT_AVATAR);
+    setShowAvatarModal(true);
+  };
+
+  const handleSaveAvatar = () => {
+    setSelectedAvatar(draftAvatar || DEFAULT_AVATAR);
+    setShowAvatarModal(false);
   };
 
   if (checking) {
@@ -164,15 +179,26 @@ export default function RegisterPage() {
   }
 
   const displayName = session?.user?.name || storedDiscord?.name || "Discord User";
-  const displayImage = session?.user?.image || storedDiscord?.image || "/images/defaultAvatar.svg";
+  const displayImage = selectedAvatar || DEFAULT_AVATAR;
+  const discordAvatar = session?.user?.image || storedDiscord?.image;
 
   return (
     <main className="min-h-screen bg-[#0f0f0f] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-3xl rounded-3xl border border-white/10 bg-[#141414] p-10 shadow-2xl shadow-black/30">
         <div className="mb-10 text-center">
           <p className="text-[#cd6931] text-[10px] uppercase tracking-[0.35em] mb-3">Cadastro</p>
-          <div className="mx-auto mb-6 w-28 h-28 overflow-hidden rounded-full border-2 border-[#cd6931] shadow-lg shadow-[#cd6931]/20">
-            <img src={displayImage} alt="Avatar do Discord" className="h-full w-full object-cover" />
+          <div className="relative mx-auto mb-6 w-28 h-28">
+            <div className="h-full w-full overflow-hidden rounded-full border-2 border-[#cd6931] shadow-lg shadow-[#cd6931]/20">
+              <img src={displayImage} alt="Avatar escolhido" className="h-full w-full object-cover" />
+            </div>
+            <button
+              type="button"
+              onClick={openAvatarModal}
+              className="absolute bottom-0 right-0 rounded-full border-2 border-[#141414] bg-[#cd6931] p-2 text-white shadow-lg shadow-black/30 transition-transform hover:scale-110 cursor-pointer"
+              aria-label="Alterar foto de perfil"
+            >
+              <FiEdit2 size={14} />
+            </button>
           </div>
           <h1 className="text-3xl font-black text-white">Crie seu nick ArenaRift</h1>
           <p className="mt-2 text-gray-300 font-semibold">{displayName}</p>
@@ -186,7 +212,7 @@ export default function RegisterPage() {
             <label className="block text-[10px] uppercase tracking-[0.35em] text-gray-400 mb-2">Nick ArenaRift</label>
             <input
               value={nick}
-              onChange={(e) => setNick(e.target.value)}
+              onChange={(event) => setNick(event.target.value)}
               placeholder={session?.user?.name || "Seu nick"}
               className="w-full rounded-2xl border border-white/10 bg-[#0a0a0a] px-4 py-3 text-white outline-none focus:border-[#cd6931]"
             />
@@ -196,7 +222,7 @@ export default function RegisterPage() {
             <label className="block text-[10px] uppercase tracking-[0.35em] text-gray-400 mb-2">Tag (4 dígitos)</label>
             <input
               value={tag}
-              onChange={(e) => setTag(e.target.value.replace(/[^0-9]/g, ""))}
+              onChange={(event) => setTag(event.target.value.replace(/[^0-9]/g, ""))}
               placeholder="Deixe vazio para gerar automaticamente"
               maxLength={4}
               className="w-full rounded-2xl border border-white/10 bg-[#0a0a0a] px-4 py-3 text-white outline-none focus:border-[#cd6931]"
@@ -211,20 +237,33 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={saving}
-            className="w-full rounded-2xl bg-[#cd6931] px-5 py-3 text-sm font-black uppercase text-white transition hover:bg-[#b45a2f] disabled:opacity-50"
+            className="w-full rounded-2xl bg-[#cd6931] px-5 py-3 text-sm font-black uppercase text-white transition hover:bg-[#b45a2f] hover:scale-102 hover:cursor-pointer disabled:opacity-50"
           >
-            {saving ? "Criando perfil..." : "Criar perfil ArenaRift"}
+            {saving ? "Criando perfil..." : "Criar perfil"}
           </button>
 
           <button
             type="button"
             onClick={() => router.push("/")}
-            className="w-full rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-bold uppercase text-gray-300 transition hover:border-[#cd6931] hover:text-white"
+            className="w-full rounded-2xl border hover:cursor-pointer border-white/10 bg-white/5 px-5 py-3 text-sm font-bold uppercase text-gray-300 transition hover:border-[#cd6931] hover:text-white"
           >
             Voltar para a home
           </button>
         </form>
       </div>
+
+      <AvatarPhotoModal
+        isOpen={showAvatarModal}
+        avatar={draftAvatar}
+        initialAvatar={DEFAULT_AVATAR}
+        discordAvatar={discordAvatar}
+        title="Foto de Perfil"
+        confirmLabel="Salvar alterações"
+        onAvatarChange={setDraftAvatar}
+        onClose={() => setShowAvatarModal(false)}
+        onConfirm={handleSaveAvatar}
+        showDeleteButton={false}
+      />
     </main>
   );
 }
