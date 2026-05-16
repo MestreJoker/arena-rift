@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation"; // Importado para o redirecionamento
 import { supabase } from "@/app/lib/supabase";
@@ -24,6 +24,8 @@ export default function Perfil() {
   const [userData, setUserData] = useState<UserProfile | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [loading, setLoading] = useState(true);
+  const profileCardRef = useRef<HTMLDivElement>(null);
+  const tournamentsScrollRef = useRef<HTMLDivElement>(null);
 
   const fetchUserData = useCallback(async (userId: string) => {
     try {
@@ -57,6 +59,42 @@ export default function Perfil() {
       return () => clearTimeout(timer);
     }
   }, [loading, status]);
+
+  useEffect(() => {
+    if (loading || status !== "authenticated") return;
+
+    const profileCard = profileCardRef.current;
+    const tournamentsScroll = tournamentsScrollRef.current;
+
+    if (!profileCard || !tournamentsScroll) return;
+
+    const syncTournamentHeight = () => {
+      if (window.innerWidth < 1024) {
+        tournamentsScroll.style.maxHeight = "";
+        tournamentsScroll.style.overflowY = "";
+        return;
+      }
+
+      const profileBottom = profileCard.getBoundingClientRect().bottom;
+      const tournamentsTop = tournamentsScroll.getBoundingClientRect().top;
+      const availableHeight = Math.max(180, Math.floor(profileBottom - tournamentsTop));
+
+      tournamentsScroll.style.maxHeight = `${availableHeight}px`;
+      tournamentsScroll.style.overflowY = "auto";
+    };
+
+    syncTournamentHeight();
+    window.addEventListener("resize", syncTournamentHeight);
+
+    const resizeObserver = new ResizeObserver(syncTournamentHeight);
+    resizeObserver.observe(profileCard);
+    resizeObserver.observe(tournamentsScroll);
+
+    return () => {
+      window.removeEventListener("resize", syncTournamentHeight);
+      resizeObserver.disconnect();
+    };
+  }, [loading, status, isVisible, userData?.id]);
 
   // Enquanto verifica a sessão ou carrega dados, exibe o loading
   if (status === "loading" || (status === "authenticated" && loading)) {
@@ -100,7 +138,7 @@ export default function Perfil() {
       <section className={`mt-15 mb-4 flex-1 w-full max-w-7xl mx-auto px-5 py-12 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <aside className="lg:col-span-1">
-            <div className="bg-[#141414] border border-white/5 rounded-2xl p-6 sticky top-24">
+            <div ref={profileCardRef} className="bg-[#141414] border border-white/5 rounded-2xl p-6 sticky top-24">
               <ProfileHeader
                 key={userData?.id || 'loading'}
                 initialData={userData}
@@ -111,7 +149,9 @@ export default function Perfil() {
           </aside>
           <div className="lg:col-span-3 space-y-8">
             <ProfileStats userId={session?.user?.id || ""} />
-            <ProfileTournaments userId={session?.user?.id || ""} />
+            <div ref={tournamentsScrollRef} className="lg:overflow-y-auto lg:pr-3 lg:[scrollbar-width:thin] lg:[scrollbar-color:#cd6931_#141414] lg:[&::-webkit-scrollbar]:w-2 lg:[&::-webkit-scrollbar-track]:rounded-full lg:[&::-webkit-scrollbar-track]:bg-white/5 lg:[&::-webkit-scrollbar-thumb]:rounded-full lg:[&::-webkit-scrollbar-thumb]:bg-[#cd6931]/70 lg:[&::-webkit-scrollbar-thumb:hover]:bg-[#cd6931]">
+              <ProfileTournaments userId={session?.user?.id || ""} />
+            </div>
           </div>
         </div>
       </section>
