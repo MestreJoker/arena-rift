@@ -1,7 +1,7 @@
 import NextAuth, { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
-  // Adicionamos a definição do Profile para o TS reconhecer o ID do Discord
+  // Adicionamos a definição do Profile para o TS reconhecer o ID do Discord ----------
   interface Profile {
     id?: string;
     username?: string;
