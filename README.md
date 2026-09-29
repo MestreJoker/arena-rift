@@ -3,7 +3,10 @@
 <div align="center">
   <p><b>Plataforma web de campeonatos competitivos voltada para a comunidade de Wild Rift, permitindo gerenciamento de torneios, inscrições e acompanhamento de estatísticas de jogadores.</b></p>
   
-  <img src="https://img.shields.io/badge/Status-Projeto%20de%20Portfólio-blue?style=for-the-badge" alt="Status"/>
+  <a href="https://projeto-arena-rift.vercel.app/" target="_blank">
+    <img src="https://img.shields.io/badge/Acessar%20Projeto%20Online-Vercel-4a54ff?style=for-the-badge&logo=vercel&logoColor=white" alt="Deploy na Vercel"/>
+  </a>
+  <img src="https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellow?style=for-the-badge" alt="Status"/>
   <img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js"/>
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript"/>
   <img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase"/>
@@ -12,7 +15,7 @@
 
 <br>
 
-> **Contexto do Projeto:** Desenvolvido originalmente como uma solução comercial focada em cenários competitivos de esports. Com a mudança de escopo do projeto, o repositório foi tornado público para compor portfólio técnico, demonstrando arquitetura front-end avançada, consumo de banco de dados e fluxos completos de usuário.
+> **Contexto do Projeto:** Desenvolvido originalmente como uma solução comercial focada em cenários competitivos de esports. Com a mudança de escopo da iniciativa, o repositório foi tornado público para compor portfólio técnico, demonstrando arquitetura front-end avançada, consumo de banco de dados e fluxos completos de usuário.
 
 ---
 
@@ -27,8 +30,8 @@
 
 ## 💡 Funcionalidades Principais
 
-* **Exploração de Campeonatos:** Listagem dinâmica com filtros avançados por modo de jogo (**1v1**, **5v5**) e status (**Aberto**, **Em andamento**, **Finalizado**)[cite: 17].
-* **Detalhes do Torneio:** Página dedicada com informações de premiação, regras e gerenciamento de inscrições[cite: 18].
+* **Explorador de Campeonatos:** Listagem dinâmica com filtros avançados por modo de jogo (**1v1**, **5v5**) e status (**Aberto**, **Em andamento**, **Finalizado**)[cite: 17].
+* **Detalhes do Torneio:** Página dedicada com informações de premiação, regras e gerenciamento de inscrições.
 * **Perfil do Jogador:** Painel individual com histórico de torneios, estatísticas de partidas (vitórias, derrotas e *win rate*) e status de inscrições[cite: 15].
 * **Customização de Avatar:** Modal interativo para personalização de perfil com opções de escolha rápida ou upload de imagem[cite: 16].
 * **Agenda e Calendário:** Calendário interativo integrado para acompanhamento de datas e eventos competitivos[cite: 14].
